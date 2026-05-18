@@ -46,8 +46,8 @@ async function initDB(env) {
     if (results.length === 0) {
       console.log('开始创建数据库表...');
       
-      // 创建文章表（每个语句分开执行）
-      await env.DB.exec(`
+      // 使用 prepare 执行 CREATE TABLE
+      await env.DB.prepare(`
         CREATE TABLE posts (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           title TEXT NOT NULL,
@@ -62,24 +62,24 @@ async function initDB(env) {
           created_at TEXT,
           updated_at TEXT
         )
-      `);
+      `).run();
 
-      await env.DB.exec(`
+      await env.DB.prepare(`
         CREATE TABLE categories (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT UNIQUE NOT NULL,
           slug TEXT UNIQUE NOT NULL,
           description TEXT
         )
-      `);
+      `).run();
 
-      await env.DB.exec(`
+      await env.DB.prepare(`
         CREATE TABLE settings (
           id INTEGER PRIMARY KEY,
           key TEXT UNIQUE NOT NULL,
           value TEXT
         )
-      `);
+      `).run();
 
       // 获取当前时间
       const now = new Date().toISOString();

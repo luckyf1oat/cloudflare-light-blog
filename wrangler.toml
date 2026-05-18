@@ -9,23 +9,14 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "blog-db"
-database_id = "f5720522-fa10-4916-84ff-7e947b12edfb"
+database_id = "a55bc271-25cb-4a47-a4aa-5dca0d176933"
 
 # ============================================
-# R2 存储绑定（可选）
+# R2 存储绑定
 # ============================================
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "blog-images"
-
-# 环境变量（部署时在 Worker Settings → Variables 中设置）
-# ADMIN_PASSWORD = "your-admin-password"
-
-# GitHub 绑定部署配置
-# Build settings:
-#   - Build command: (留空)
-#   - Build output directory: (留空)
-#   - Deploy command: npx wrangler deploy
 
 [observability]
 enabled = true
