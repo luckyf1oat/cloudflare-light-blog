@@ -586,15 +586,22 @@ function getFrontendHTML() {
         };
         
         app.innerHTML = posts.map(post => \`
-          <article class="post-card">
-            \${post.cover_image ? \`<img src="\${post.cover_image}" alt="\${post.title}">\` : ''}
-            <div class="content">
-              <h2><a href="/post/\${formatDate(post.created_at)}/\${post.id}">\${post.title}</a></h2>
-              <p class="excerpt">\${post.excerpt || ''}</p>
-              <div class="meta">
-                <span>\${post.category}</span>
-                <span>\${post.view_count} 阅读</span>
-                <span>\${new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
+          <article class="post-card" style="display:flex;flex-direction:row">
+            <div style="width:240px;flex-shrink:0;background:#e2e8f0;display:flex;align-items:center;justify-content:center;min-height:180px">
+              \${post.cover_image ? \`<img src="\${post.cover_image}" alt="\${post.title}" style="width:100%;height:100%;object-fit:cover">\` : \`<span style="color:#94a3b8">暂无封面</span>\`}
+            </div>
+            <div class="content" style="flex:1;display:flex;flex-direction:column;justify-content:space-between">
+              <div>
+                <h2><a href="/post/\${formatDate(post.created_at)}/\${post.id}">\${post.title}</a></h2>
+                <p class="excerpt">\${(post.content || '').substring(0, 30) + '...'}</p>
+              </div>
+              <div>
+                <div class="meta">
+                  <span>\${post.category}</span>
+                  <span>\${post.view_count} 阅读</span>
+                  <span>\${new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
+                </div>
+                <a href="/post/\${formatDate(post.created_at)}/\${post.id}" target="_blank" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#667eea;color:white;text-decoration:none;border-radius:6px;font-size:14px">阅读更多</a>
               </div>
             </div>
           </article>
@@ -736,15 +743,30 @@ function getAdminHTML() {
             </div>
           </div>
           <div class="form-group">
-            <label>封面图片</label>
-            <input type="file" @change="handleCoverChange" accept="image/*">
-            <div v-if="uploading" style="margin-top:10px">
-              <div style="background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden">
-                <div :style="{width:uploadProgress+'%',background:'#667eea',height:'100%',transition:'width 0.1s'}"></div>
+            <label>封面图片（拖拽或点击上传）</label>
+            <div 
+              class="cover-upload-area"
+              @click="$refs.fileInput.click()"
+              @dragover.prevent
+              @drop.prevent="handleDrop"
+              style="border:2px dashed #cbd5e1;border-radius:8px;padding:30px;text-align:center;cursor:pointer;margin-bottom:10px"
+            >
+              <input ref="fileInput" type="file" @change="handleCoverChange" accept="image/*" style="display:none">
+              <div v-if="!coverPreview">
+                <p style="color:#64748b">点击或拖拽图片到这里</p>
               </div>
-              <p style="font-size:12px;color:#666;margin-top:5px">上传中... {{ uploadProgress }}%</p>
+              <img v-else :src="coverPreview" style="max-width:200px;max-height:150px;object-fit:cover">
             </div>
-            <img v-if="coverPreview" :src="coverPreview" class="cover-preview">
+            <div v-if="uploading" style="margin-bottom:10px">
+              <div style="background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden">
+                <div :style="{width:uploadProgress+'%',background:'#667eea',height:'100%'}"></div>
+              </div>
+              <p style="font-size:12px;color:#666">上传中... {{ uploadProgress }}%</p>
+            </div>
+            <div v-if="coverPreview" style="display:flex;gap:10px">
+              <button type="button" @click="$refs.fileInput.click()" style="padding:8px 16px;background:#dbeafe;color:#2563eb;border:none;border-radius:6px;cursor:pointer">更换图片</button>
+              <button type="button" @click="deleteCover" style="padding:8px 16px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer">删除图片</button>
+            </div>
           </div>
           <div class="form-group">
             <label>摘要</label>
@@ -836,15 +858,22 @@ function getAdminHTML() {
         const handleCoverChange = async (e) => {
           const file = e.target.files[0];
           if (!file) return;
-          
+          await uploadFile(file);
+        };
+        
+        const handleDrop = async (e) => {
+          const file = e.dataTransfer.files[0];
+          if (file && file.type.startsWith('image/')) {
+            await uploadFile(file);
+          }
+        };
+        
+        const uploadFile = async (file) => {
           uploading.value = true;
           uploadProgress.value = 0;
           
-          // 模拟进度条
           const progressInterval = setInterval(() => {
-            if (uploadProgress.value < 90) {
-              uploadProgress.value += 10;
-            }
+            if (uploadProgress.value < 90) uploadProgress.value += 10;
           }, 100);
           
           try {
@@ -865,30 +894,21 @@ function getAdminHTML() {
             if (data.url) {
               form.value.cover_image = data.url;
               coverPreview.value = data.url;
-            } else {
-              // 如果上传失败，使用 base64
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                form.value.cover_image = e.target.result;
-                coverPreview.value = e.target.result;
-              };
-              reader.readAsDataURL(file);
             }
           } catch (err) {
             clearInterval(progressInterval);
-            // 降级为 base64
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              form.value.cover_image = e.target.result;
-              coverPreview.value = e.target.result;
-            };
-            reader.readAsDataURL(file);
+            alert('上传失败');
           } finally {
             setTimeout(() => {
               uploading.value = false;
               uploadProgress.value = 0;
             }, 500);
           }
+        };
+        
+        const deleteCover = () => {
+          form.value.cover_image = '';
+          coverPreview.value = '';
         };
 
         const savePost = async () => {
