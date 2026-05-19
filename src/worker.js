@@ -229,7 +229,7 @@ async function handleAPI(request, env, path) {
   if (path === '/api/admin/posts' && method === 'GET') {
     try {
       const { results } = await env.DB.prepare(
-        "SELECT id, title, slug, status, category, view_count, created_at FROM posts ORDER BY created_at DESC"
+        "SELECT * FROM posts ORDER BY created_at DESC"
       ).all();
       return json(results);
     } catch (e) {
