@@ -190,7 +190,7 @@ async function handleAPI(request, env, path) {
   if (path === '/api/posts' && method === 'GET') {
     try {
       const { results } = await env.DB.prepare(
-        "SELECT id, title, slug, excerpt, cover_image, category, tags, view_count, created_at FROM posts WHERE status='published' ORDER BY created_at DESC"
+        "SELECT id, title, slug, content, excerpt, cover_image, category, tags, view_count, created_at FROM posts WHERE status='published' ORDER BY created_at DESC"
       ).all();
       return json(results);
     } catch (e) {
