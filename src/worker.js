@@ -512,8 +512,7 @@ function getPostHTML(post) {
         <span>${new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
       </div>
       <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-      <div style="line-height:1.8">${post.content.split('\
-').join('<br>')}</div>
+      <div style="white-space:pre-wrap;word-break:break-word;">${post.content}</div>
     </article>
   </main>
   <footer>
@@ -767,10 +766,7 @@ function getAdminHTML() {
               <button type="button" @click="deleteCover" style="padding:8px 16px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer">删除图片</button>
             </div>
           </div>
-          <div class="form-group">
-            <label>摘要</label>
-            <textarea v-model="form.excerpt" placeholder="文章摘要"></textarea>
-          </div>
+
           <div class="form-group">
             <label>内容</label>
             <textarea v-model="form.content" placeholder="文章内容（支持 Markdown）"></textarea>
