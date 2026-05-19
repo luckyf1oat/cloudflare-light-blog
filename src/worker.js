@@ -307,8 +307,8 @@ async function handleAPI(request, env, path) {
       }
       const now = new Date().toISOString();
       const result = await env.DB.prepare(`
-        INSERT INTO posts (title, slug, content, excerpt, cover_image, category, tags, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO posts (title, slug, content, excerpt, cover_image, category, tags, status, password, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
         body.title,
         slug,
@@ -348,6 +348,7 @@ async function handleAPI(request, env, path) {
         body.category || '未分类',
         body.tags || '',
         body.status || 'draft',
+        body.password || '',
         now,
         id
       ).run();
