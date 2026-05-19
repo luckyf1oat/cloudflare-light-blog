@@ -273,7 +273,7 @@ async function handleAPI(request, env, path) {
       const links = await env.DB.prepare("SELECT value FROM settings WHERE key='site_links'").first();
       const linksData = links?.value || '';
       // 解析简单格式：名称,地址 每行一个
-      const result = linksData.split('
+      const result = linksData.split('\
 ').filter(line => line.trim()).map(line => {
         const parts = line.split(',');
         return { name: parts[0]?.trim() || '', url: parts[1]?.trim() || '' };
