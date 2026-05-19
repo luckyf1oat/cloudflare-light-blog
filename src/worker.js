@@ -816,8 +816,10 @@ function getAdminHTML() {
         };
 
         const openEdit = (post) => {
+          console.log('openEdit 被调用', post);
           editingId.value = post.id;
           form.value = JSON.parse(JSON.stringify(post));
+          console.log('form.value 已更新', form.value);
           coverPreview.value = post.cover_image || '';
           showModal.value = true;
         };
