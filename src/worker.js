@@ -112,6 +112,18 @@ async function initDB(env) {
         "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)"
       ).bind('site_favicon', '').run();
 
+      await env.DB.prepare(
+        "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)"
+      ).bind('site_avatar', '').run();
+
+      await env.DB.prepare(
+        "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)"
+      ).bind('site_bio', '').run();
+
+      await env.DB.prepare(
+        "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)"
+      ).bind('site_links', '').run();
+
       // 插入示例文章
       await env.DB.prepare(`
         INSERT INTO posts (title, slug, content, excerpt, cover_image, category, tags, status, view_count, created_at, updated_at)
@@ -228,6 +240,41 @@ async function handleAPI(request, env, path) {
         "SELECT * FROM categories ORDER BY name"
       ).all();
       return json(results);
+    } catch (e) {
+      return json({ error: e.message }, 500);
+    }
+  }
+
+  // 获取统计信息
+  if (path === '/api/stats' && method === 'GET') {
+    try {
+      const postCount = await env.DB.prepare("SELECT COUNT(*) as count FROM posts WHERE status='published'").all();
+      const catCount = await env.DB.prepare("SELECT COUNT(*) as count FROM categories").all();
+      return json({ 
+        postCount: postCount.results?.[0]?.count || postCount[0]?.count || 0,
+        catCount: catCount.results?.[0]?.count || catCount[0]?.count || 0
+      });
+    } catch (e) {
+      return json({ postCount: 0, catCount: 0 });
+    }
+  }
+
+  // 友链管理 API
+  if (path === '/api/links' && method === 'GET') {
+    try {
+      const links = await env.DB.prepare("SELECT * FROM settings WHERE key='site_links'").all();
+      const linksData = links.results?.[0]?.value || links[0]?.value || '';
+      return json(linksData ? JSON.parse(linksData) : []);
+    } catch (e) {
+      return json([]);
+    }
+  }
+
+  if (path === '/api/links' && method === 'POST') {
+    try {
+      const body = await request.json();
+      await env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind('site_links', JSON.stringify(body)).run();
+      return json({ success: true });
     } catch (e) {
       return json({ error: e.message }, 500);
     }
@@ -674,8 +721,22 @@ function getFrontendHTML(settings) {
     header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 40px 20px; text-align: center; }
     header h1 { font-size: 2.5em; margin-bottom: 10px; }
     header p { opacity: 0.9; font-size: 1.1em; }
-    main { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-    .post-list { display: grid; gap: 30px; }
+    main { max-width: 1100px; margin: 40px auto; padding: 0 20px; display: flex; gap: 30px; }
+    .sidebar { width: 280px; flex-shrink: 0; }
+    .post-list { flex: 1; display: grid; gap: 30px; }
+    .profile-card { background: white; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .profile-card .avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto 16px; background: #e2e8f0; }
+    .profile-card .name { font-size: 1.3em; font-weight: bold; margin-bottom: 8px; }
+    .profile-card .bio { color: #666; font-size: 0.9em; margin-bottom: 16px; }
+    .profile-card .stats { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+    .profile-card .stat-item { text-align: center; }
+    .profile-card .stat-num { font-size: 1.2em; font-weight: bold; color: #667eea; }
+    .profile-card .stat-label { font-size: 0.8em; color: #999; }
+    .profile-card h4 { font-size: 0.9em; color: #999; margin: 16px 0 12px; text-align: left; }
+    .profile-card .category-list, .profile-card .link-list { text-align: left; }
+    .profile-card .category-list a, .profile-card .link-list a { display: block; padding: 8px 0; color: #333; text-decoration: none; border-bottom: 1px solid #f5f5f5; }
+    .profile-card .category-list a:hover, .profile-card .link-list a:hover { color: #667eea; }
+    .profile-card .link-list a { display: flex; justify-content: space-between; }
     .post-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s; }
     .post-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
     .post-card img { width: 100%; height: 240px; object-fit: cover; }
@@ -695,20 +756,29 @@ function getFrontendHTML(settings) {
     <div id="nav-categories" style="margin-top:20px">
       <a href="/" style="color:white;margin:0 10px">全部</a>
     </div>
-    <script>
-      // 加载分类导航
-      fetch('/api/categories')
-        .then(r=>r.json())
-        .then(cats=>{
-          const nav = document.getElementById('nav-categories');
-          if(cats && cats.length > 0) {
-            nav.innerHTML = '<a href="/" style="color:white;margin:0 10px">全部</a>' + 
-              cats.map(c=>'<a href="/?category='+c.name+'" style="color:white;margin:0 10px">'+c.name+'</a>').join('');
-          }
-        });
-    </script>
   </header>
   <main>
+    <aside class="sidebar">
+      <div class="profile-card">
+        <img id="profile-avatar" class="avatar" src="" alt="头像">
+        <div class="name">${siteName}</div>
+        <div id="profile-bio" class="bio"></div>
+        <div class="stats">
+          <div class="stat-item">
+            <div id="stat-posts" class="stat-num">0</div>
+            <div class="stat-label">文章</div>
+          </div>
+          <div class="stat-item">
+            <div id="stat-cats" class="stat-num">0</div>
+            <div class="stat-label">分类</div>
+          </div>
+        </div>
+        <h4>分类导航</h4>
+        <div id="category-list" class="category-list"></div>
+        <h4>友情链接</h4>
+        <div id="link-list" class="link-list"></div>
+      </div>
+    </aside>
     <div class="post-list" id="app">
       <p style="text-align:center;color:#999;">加载中...</p>
     </div>
@@ -999,6 +1069,40 @@ function getAdminHTML() {
             <input v-model="settingsForm.site_description" placeholder="网站副标题">
           </div>
           <div class="form-group">
+            <label>博客头像</label>
+            <div 
+              class="cover-upload-area"
+              @click="$refs.avatarInput.click()"
+              @dragover.prevent
+              @drop.prevent="handleAvatarDrop"
+              style="border:2px dashed #cbd5e1;border-radius:8px;padding:20px;text-align:center;cursor:pointer;margin-bottom:10px"
+            >
+              <input ref="avatarInput" type="file" @change="handleAvatar" accept="image/*" style="display:none">
+              <div v-if="!settingsForm.site_avatar">
+                <p style="color:#64748b">点击或拖拽头像到这里</p>
+              </div>
+              <img v-else :src="settingsForm.site_avatar" style="width:64px;height:64px;border-radius:50%">
+            </div>
+            <div v-if="avatarUploading" style="margin-bottom:10px">
+              <div style="background:#e2e8f0;border-radius:4px;height:8px;overflow:hidden">
+                <div :style="{width:avatarProgress+'%',background:'#667eea',height:'100%'}"></div>
+              </div>
+              <p style="font-size:12px;color:#666">上传中... {{ avatarProgress }}%</p>
+            </div>
+            <div v-if="settingsForm.site_avatar" style="display:flex;gap:10px">
+              <button type="button" @click="$refs.avatarInput.click()" style="padding:6px 12px;background:#dbeafe;color:#2563eb;border:none;border-radius:6px;cursor:pointer;font-size:12px">更换</button>
+              <button type="button" @click="settingsForm.site_avatar = ''" style="padding:6px 12px;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;cursor:pointer;font-size:12px">删除</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>个人简介</label>
+            <textarea v-model="settingsForm.site_bio" placeholder="个人简介" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>友链（JSON 格式，每行一个，如：[{"name":"名称","url":"地址"}]）</label>
+            <textarea v-model="settingsForm.site_links" placeholder='[{"name":"友链名称","url":"https://example.com"}]' rows="4" style="font-family:monospace"></textarea>
+          </div>
+          <div class="form-group">
             <label>网站图标（建议 ICO 格式，32x32 或 64x64）</label>
             <div 
               class="cover-upload-area"
@@ -1238,9 +1342,11 @@ function getAdminHTML() {
         };
         
         const settingsModal = ref(false);
-        const settingsForm = ref({ site_name: '', site_description: '', site_favicon: '' });
+        const settingsForm = ref({ site_name: '', site_description: '', site_favicon: '', site_avatar: '', site_bio: '', site_links: '' });
         const faviconUploading = ref(false);
         const faviconProgress = ref(0);
+        const avatarUploading = ref(false);
+        const avatarProgress = ref(0);
         
         const openSettingsModal = () => {
           console.log('openSettingsModal clicked', settings.value);
@@ -1299,6 +1405,48 @@ function getAdminHTML() {
           }
         };
         
+        const handleAvatar = async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          await uploadAvatar(file);
+        };
+        
+        const handleAvatarDrop = async (e) => {
+          const file = e.dataTransfer.files[0];
+          if (file && file.type.startsWith('image/')) {
+            await uploadAvatar(file);
+          }
+        };
+        
+        const uploadAvatar = async (file) => {
+          avatarUploading.value = true;
+          avatarProgress.value = 0;
+          
+          const progressInterval = setInterval(() => {
+            if (avatarProgress.value < 90) avatarProgress.value += 10;
+          }, 100);
+          
+          try {
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await fetch('/api/upload', { method: 'POST', body: formData });
+            const data = await res.json();
+            clearInterval(progressInterval);
+            avatarProgress.value = 100;
+            if (data.url) {
+              settingsForm.value.site_avatar = data.url;
+            }
+          } catch (err) {
+            clearInterval(progressInterval);
+            alert('上传失败');
+          } finally {
+            setTimeout(() => {
+              avatarUploading.value = false;
+              avatarProgress.value = 0;
+            }, 500);
+          }
+        };
+        
         onMounted(() => { 
           check(); 
           loadCategories();
@@ -1335,7 +1483,7 @@ function getAdminHTML() {
           loadSettings();
         });
         
-        return { logged, password, login, logout, posts, showModal, editingId, form, coverPreview, toast, uploading, uploadProgress, openAdd, openEdit, handleCoverChange, savePost, deletePost, categories, categoryModal, categoryForm, openCategoryModal, saveCategory, deleteCategory, settings, settingsModal, settingsForm, openSettingsModal, saveSettings, handleFavicon, handleFaviconDrop, faviconUploading, faviconProgress };
+        return { logged, password, login, logout, posts, showModal, editingId, form, coverPreview, toast, uploading, uploadProgress, openAdd, openEdit, handleCoverChange, savePost, deletePost, categories, categoryModal, categoryForm, openCategoryModal, saveCategory, deleteCategory, settings, settingsModal, settingsForm, openSettingsModal, saveSettings, handleFavicon, handleFaviconDrop, faviconUploading, faviconProgress, handleAvatar, handleAvatarDrop, avatarUploading, avatarProgress };
       }
     }).mount('#app');
   </script>
