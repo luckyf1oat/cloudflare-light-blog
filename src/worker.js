@@ -757,32 +757,31 @@ function getFrontendHTML(settings) {
     header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 40px 20px; text-align: center; }
     header h1 { font-size: 2.5em; margin-bottom: 10px; }
     header p { opacity: 0.9; font-size: 1.1em; }
-    main { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-    .post-list { display: grid; gap: 30px; }
-    .post-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s; }
-    .post-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
-    .post-card img { width: 100%; height: 240px; object-fit: cover; }
-    .post-card .content { padding: 24px; }
-    .post-card h2 { font-size: 1.4em; margin-bottom: 12px; color: #1a1a1a; }
-    .post-card .excerpt { color: #666; line-height: 1.6; margin-bottom: 16px; }
-    .post-card .meta { display: flex; gap: 16px; color: #999; font-size: 0.9em; }
-    .post-card a { display: inline-block; color: #667eea; text-decoration: none; font-weight: 500; }
-    .post-card a:hover { text-decoration: underline; }
+    main { max-width: 1100px; margin: 40px auto; padding: 0 20px; display: flex; gap: 30px; align-items: flex-start; }
+    .sidebar { width: 280px; flex-shrink: 0; }
+    .post-list { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+    .post-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; flex-direction: row; }
+    .post-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .post-card img { width: 200px; height: auto; min-height: 150px; object-fit: cover; flex-shrink: 0; }
+    .post-card .content { flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+    .post-card h2 { font-size: 1.2em; margin-bottom: 8px; color: #1a1a1a; }
+    .post-card .excerpt { color: #666; line-height: 1.5; font-size: 0.9em; }
+    .post-card .meta { display: flex; gap: 12px; color: #999; font-size: 0.85em; margin-top: 12px; }
+    .post-card a.read-more { display: inline-block; padding: 6px 16px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-size: 0.85em; align-self: flex-start; margin-top: 12px; }
+    .post-card a.read-more:hover { background: #5568d3; }
     
     /* 博客简介卡片 */
-    .profile-card { background: white; border-radius: 12px; padding: 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 30px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px; }
-    .profile-card .avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #e2e8f0; }
-    .profile-card .info { flex: 1; text-align: left; }
-    .profile-card .name { font-size: 1.3em; font-weight: bold; margin-bottom: 4px; }
-    .profile-card .bio { color: #666; font-size: 0.9em; margin-bottom: 8px; }
-    .profile-card .stats { display: flex; gap: 20px; }
+    .profile-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .profile-card .avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin: 0 auto 12px; display: block; background: #e2e8f0; }
+    .profile-card .name { font-size: 1.1em; font-weight: bold; text-align: center; margin-bottom: 4px; }
+    .profile-card .bio { color: #666; font-size: 0.85em; text-align: center; margin-bottom: 12px; }
+    .profile-card .stats { display: flex; justify-content: center; gap: 16px; padding-bottom: 12px; border-bottom: 1px solid #eee; margin-bottom: 12px; }
     .profile-card .stat-item { text-align: center; }
-    .profile-card .stat-num { font-size: 1.2em; font-weight: bold; color: #667eea; }
-    .profile-card .stat-label { font-size: 0.8em; color: #999; }
-    .profile-card h4 { font-size: 0.9em; color: #999; margin: 16px 0 12px; width: 100%; text-align: left; }
-    .profile-card .category-list, .profile-card .link-list { width: 100%; text-align: left; }
-    .profile-card .category-list a, .profile-card .link-list a { display: inline-block; padding: 4px 12px; margin: 0 8px 8px 0; color: #333; text-decoration: none; background: #f5f5f5; border-radius: 4px; font-size: 0.85em; }
-    .profile-card .category-list a:hover, .profile-card .link-list a:hover { background: #667eea; color: white; }
+    .profile-card .stat-num { font-size: 1.1em; font-weight: bold; color: #667eea; }
+    .profile-card .stat-label { font-size: 0.75em; color: #999; }
+    .profile-card h4 { font-size: 0.85em; color: #999; margin: 12px 0 8px; }
+    .profile-card .category-list a, .profile-card .link-list a { display: block; padding: 6px 0; color: #333; text-decoration: none; border-bottom: 1px solid #f5f5f5; font-size: 0.85em; }
+    .profile-card .category-list a:hover, .profile-card .link-list a:hover { color: #667eea; }
     .profile-card .bio { color: #666; font-size: 0.9em; margin-bottom: 16px; }
     .profile-card .stats { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
     .profile-card .stat-item { text-align: center; }
@@ -909,23 +908,17 @@ function getFrontendHTML(settings) {
         const categories = [];
         
         app.innerHTML = posts.map(post => \`
-          <article class="post-card" style="display:flex;flex-direction:row">
-            <div style="width:240px;flex-shrink:0;background:#e2e8f0;display:flex;align-items:center;justify-content:center;min-height:180px">
-              \${post.cover_image ? \`<img src="\${post.cover_image}" alt="\${post.title}" style="width:100%;height:100%;object-fit:cover">\` : \`<span style="color:#94a3b8">暂无封面</span>\`}
-            </div>
-            <div class="content" style="flex:1;display:flex;flex-direction:column;justify-content:space-between">
-              <div>
-                <h2><a href="/post/\${formatDate(post.created_at)}/\${post.id}">\${post.title}</a></h2>
-                <p class="excerpt">\${getExcerpt(post.content)}</p>
+          <article class="post-card">
+            \${post.cover_image ? \`<img src="\${post.cover_image}" alt="\${post.title}">\` : \`<div style="width:200px;background:#e2e8f0;display:flex;align-items:center;justify-content:center"><span style="color:#94a3b8">暂无封面</span></div>\`}
+            <div class="content">
+              <h2><a href="/post/\${formatDate(post.created_at)}/\${post.id}">\${post.title}</a></h2>
+              <p class="excerpt">\${getExcerpt(post.content)}</p>
+              <div class="meta">
+                <span>\${post.category}</span>
+                <span>\${post.view_count} 阅读</span>
+                <span>\${new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
               </div>
-              <div>
-                <div class="meta">
-                  <span>\${post.category}</span>
-                  <span>\${post.view_count} 阅读</span>
-                  <span>\${new Date(post.created_at).toLocaleDateString('zh-CN')}</span>
-                </div>
-                <a href="/post/\${formatDate(post.created_at)}/\${post.id}" target="_blank" style="display:inline-block;margin-top:12px;padding:8px 20px;background:#667eea;color:white;text-decoration:none;border-radius:6px;font-size:14px">阅读更多</a>
-              </div>
+              <a class="read-more" href="/post/\${formatDate(post.created_at)}/\${post.id}" target="_blank">阅读更多</a>
             </div>
           </article>
         \`).join('');
