@@ -278,8 +278,7 @@ async function handleAPI(request, env, path) {
       const links = await env.DB.prepare("SELECT value FROM settings WHERE key='site_links'").first();
       const linksData = links && links.value ? links.value : '';
       if (!linksData) return json([]);
-      const lines = linksData.split('
-');
+      const lines = linksData.split('\n');
       const result = [];
       for (const line of lines) {
         if (!line.trim()) continue;
