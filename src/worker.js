@@ -760,15 +760,17 @@ function getFrontendHTML(settings) {
     main { max-width: 1100px; margin: 40px auto; padding: 0 20px; display: flex; gap: 30px; align-items: flex-start; }
     .sidebar { width: 280px; flex-shrink: 0; }
     .post-list { flex: 1; display: flex; flex-direction: column; gap: 20px; }
-    .post-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; flex-direction: row; }
+    .post-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; flex-direction: row !important; }
     .post-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-    .post-card img { width: 200px; height: auto; min-height: 150px; object-fit: cover; flex-shrink: 0; }
-    .post-card .content { flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+    
     .post-card h2 { font-size: 1.2em; margin-bottom: 8px; color: #1a1a1a; }
     .post-card .excerpt { color: #666; line-height: 1.5; font-size: 0.9em; }
     .post-card .meta { display: flex; gap: 12px; color: #999; font-size: 0.85em; margin-top: 12px; }
     .post-card a.read-more { display: inline-block; padding: 6px 16px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-size: 0.85em; align-self: flex-start; margin-top: 12px; }
     .post-card a.read-more:hover { background: #5568d3; }
+    .post-card .post-cover { width: 220px; flex-shrink: 0; background: #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .post-card .post-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .post-card .post-content { flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
     
     /* 博客简介卡片 */
     .profile-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
@@ -909,8 +911,8 @@ function getFrontendHTML(settings) {
         
         app.innerHTML = posts.map(post => \`
           <article class="post-card">
-            \${post.cover_image ? \`<img src="\${post.cover_image}" alt="\${post.title}">\` : \`<div style="width:200px;background:#e2e8f0;display:flex;align-items:center;justify-content:center"><span style="color:#94a3b8">暂无封面</span></div>\`}
-            <div class="content">
+            <div class="post-cover">\${post.cover_image ? \`<img src="\${post.cover_image}" alt="\${post.title}">\` : \`<span style="color:#94a3b8">暂无封面</span>\`}</div>
+            <div class="post-content">
               <h2><a href="/post/\${formatDate(post.created_at)}/\${post.id}">\${post.title}</a></h2>
               <p class="excerpt">\${getExcerpt(post.content)}</p>
               <div class="meta">
