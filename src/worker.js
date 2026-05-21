@@ -670,7 +670,6 @@ function getFrontendHTML(settings) {
     .post-card .post-content { flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
     .post-card h2 { font-size: 1.2em; margin-bottom: 8px; color: #794f27; font-weight: 700; }
     .post-card h2 a { color: #794f27; text-decoration: none; }
-    .post-card .excerpt { color: #725d42; line-height: 1.5; font-size: 0.9em; font-weight: 500; }
     .post-card .meta { display: flex; gap: 12px; color: #9f927d; font-size: 0.8em; margin-top: 12px; font-weight: 600; }
     .post-card a.read-more { display: inline-block; padding: 8px 20px; background: #19c8b9; color: #fff; text-decoration: none; border-radius: 50px; font-size: 0.85em; font-weight: 600; align-self: flex-start; margin-top: 12px; box-shadow: 0 4px 0 0 #11a89b; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
     .post-card a.read-more:hover { transform: translateY(-1px); box-shadow: 0 5px 0 0 #11a89b; }
@@ -749,14 +748,14 @@ function getFrontendHTML(settings) {
           return;
         }
         const formatDate = (d) => { const dt = new Date(d); return dt.getFullYear() + String(dt.getMonth()+1).padStart(2,'0'); };
-        const getExcerpt = (c) => { if(!c) return '...'; return c.substring(0,30) + (c.length > 30 ? '...' : ''); };
         app.innerHTML = posts.map(post => {
           const cover = post.cover_image ? '<img src="' + post.cover_image + '" alt="' + post.title + '">' : '<span style="color:#9f927d">暂无封面</span>';
+          const tags = post.tags ? post.tags.split(',').map(t => '<span style="display:inline-block;padding:2px 8px;background:#f0e8d8;border-radius:12px;font-size:0.75em;margin-right:4px;color:#725d42">' + t.trim() + '</span>').join('') : '';
           return '<article class="post-card">' +
             '<div class="post-cover">' + cover + '</div>' +
             '<div class="post-content">' +
               '<h2><a href="/post/' + formatDate(post.created_at) + '/' + post.id + '">' + post.title + '</a></h2>' +
-              '<p class="excerpt">' + getExcerpt(post.content) + '</p>' +
+              (tags ? '<div style="margin:8px 0">' + tags + '</div>' : '') +
               '<div class="meta">' +
                 '<span>' + post.category + '</span>' +
                 '<span>' + post.view_count + ' 阅读</span>' +
@@ -1150,7 +1149,19 @@ function getAdminHTML() {
               </div>
               <div class="form-group">
                 <label>内容</label>
-                <textarea v-model="form.content" placeholder="文章内容" rows="10"></textarea>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+                  <button type="button" @click="insertMd('heading')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;font-weight:600;color:#725d42">标题</button>
+                  <button type="button" @click="insertMd('bold')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;font-weight:700;color:#725d42">B</button>
+                  <button type="button" @click="insertMd('italic')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;font-style:italic;color:#725d42">I</button>
+                  <button type="button" @click="insertMd('link')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">🔗 链接</button>
+                  <button type="button" @click="insertMd('image')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">🖼 图片</button>
+                  <button type="button" @click="insertMd('code')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;font-family:monospace;color:#725d42">代码</button>
+                  <button type="button" @click="insertMd('ul')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">• 列表</button>
+                  <button type="button" @click="insertMd('ol')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">1. 序号</button>
+                  <button type="button" @click="insertMd('quote')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">❝ 引用</button>
+                  <button type="button" @click="insertMd('hr')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">— 分割线</button>
+                </div>
+                <textarea ref="editContentArea" v-model="form.content" placeholder="文章内容" rows="10"></textarea>
               </div>
               <div style="display:flex;gap:10px;justify-content:flex-end">
                 <button class="btn btn-cancel" @click="editingId=null">取消</button>
@@ -1209,7 +1220,19 @@ function getAdminHTML() {
             </div>
             <div class="form-group">
               <label>内容</label>
-              <textarea v-model="form.content" placeholder="文章内容" rows="15"></textarea>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+                <button type="button" @click="insertMd('heading')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;font-weight:600;color:#725d42">标题</button>
+                <button type="button" @click="insertMd('bold')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;font-weight:700;color:#725d42">B</button>
+                <button type="button" @click="insertMd('italic')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;font-style:italic;color:#725d42">I</button>
+                <button type="button" @click="insertMd('link')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">🔗 链接</button>
+                <button type="button" @click="insertMd('image')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">🖼 图片</button>
+                <button type="button" @click="insertMd('code')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;font-family:monospace;color:#725d42">代码</button>
+                <button type="button" @click="insertMd('ul')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">• 列表</button>
+                <button type="button" @click="insertMd('ol')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">1. 序号</button>
+                <button type="button" @click="insertMd('quote')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">❝ 引用</button>
+                <button type="button" @click="insertMd('hr')" style="padding:6px 12px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:8px;cursor:pointer;color:#725d42">— 分割线</button>
+              </div>
+              <textarea ref="contentArea" v-model="form.content" placeholder="文章内容" rows="15"></textarea>
             </div>
             <button class="btn" @click="savePost" style="width:100%;margin-top:20px">保存文章</button>
           </div>
@@ -1455,7 +1478,31 @@ function getAdminHTML() {
 
         onMounted(() => { check(); loadCategories(); loadSettings(); });
 
-        return { logged, password, login, logout, posts, editingId, form, coverPreview, toast, uploading, uploadProgress, openAdd, toggleEdit, handleCoverChange, handleDrop, savePost, deletePost, deleteCover, categories, currentPage, categoryForm, saveCategory, deleteCategory, settingsForm, saveSettings, handleFavicon, handleFaviconDrop, handleAvatar, handleAvatarDrop };
+        const insertMd = (type) => {
+          const textarea = document.querySelector('textarea:focus') || document.querySelector('textarea');
+          if (!textarea) return;
+          const start = textarea.selectionStart;
+          const end = textarea.selectionEnd;
+          const text = form.value.content || '';
+          const selected = text.substring(start, end);
+          let insert = '';
+          switch(type) {
+            case 'heading': insert = '## ' + (selected || '标题'); break;
+            case 'bold': insert = '**' + (selected || '加粗文字') + '**'; break;
+            case 'italic': insert = '*' + (selected || '斜体文字') + '*'; break;
+            case 'link': insert = '[' + (selected || '链接文字') + '](https://)'; break;
+            case 'image': insert = '![' + (selected || '图片描述') + '](https://图片地址)'; break;
+            case 'code': insert = selected.includes('\n') ? '```\n' + (selected || '代码') + '\n```' : '`' + (selected || '代码') + '`'; break;
+            case 'ul': insert = '- ' + (selected || '列表项'); break;
+            case 'ol': insert = '1. ' + (selected || '列表项'); break;
+            case 'quote': insert = '> ' + (selected || '引用内容'); break;
+            case 'hr': insert = '\n---\n'; break;
+          }
+          form.value.content = text.substring(0, start) + insert + text.substring(end);
+          setTimeout(() => { textarea.focus(); textarea.selectionStart = start + insert.length; textarea.selectionEnd = start + insert.length; }, 0);
+        };
+
+        return { logged, password, login, logout, posts, editingId, form, coverPreview, toast, uploading, uploadProgress, openAdd, toggleEdit, handleCoverChange, handleDrop, savePost, deletePost, deleteCover, categories, currentPage, categoryForm, saveCategory, deleteCategory, settingsForm, saveSettings, handleFavicon, handleFaviconDrop, handleAvatar, handleAvatarDrop, insertMd };
       }
     }).mount('#app');
   <\/script>
