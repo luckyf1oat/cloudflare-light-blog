@@ -214,7 +214,7 @@ async function handleAPI(request, env, path) {
     try {
       const url = new URL(request.url);
       const category = url.searchParams.get('category');
-      let sql = "SELECT id, title, slug, content, excerpt, cover_image, category, tags, view_count, created_at FROM posts WHERE status='published'";
+      let sql = "SELECT id, title, slug, content, excerpt, cover_image, category, tags, view_count, created_at, password FROM posts WHERE status='published'";
       let params = [];
       if (category) {
         sql += " AND category=?";
