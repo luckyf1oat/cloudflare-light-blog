@@ -1233,7 +1233,6 @@ function getAdminHTML() {
         <!-- 文章管理 -->
         <div v-if="currentPage==='posts'">
           <div class="page-header">
-            <h2>文章管理</h2>
             <button class="btn" @click="openAdd()">新建文章</button>
           </div>
           <div v-for="post in posts" :key="post.id" style="margin-bottom:16px">
@@ -1422,7 +1421,6 @@ function getAdminHTML() {
         <!-- 分类管理 -->
         <div v-if="currentPage==='category'">
           <div class="page-header">
-            <h2>分类管理</h2>
             <button class="btn" @click="showCategoryForm = true; editingCategory = null; categoryForm = { name: '', slug: '', description: '' }">添加分类</button>
           </div>
           
