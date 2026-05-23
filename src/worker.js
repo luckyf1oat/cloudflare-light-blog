@@ -64,7 +64,8 @@ async function initDB(env) {
         CREATE TABLE categories (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           name TEXT UNIQUE NOT NULL,
-          slug TEXT UNIQUE NOT NULL
+          slug TEXT UNIQUE NOT NULL,
+          description TEXT
         )
       `).run();
     }
@@ -218,8 +219,11 @@ async function handleAPI(request, env, path) {
       let sql = "SELECT id, title, slug, content, excerpt, cover_image, category, tags, view_count, created_at, password FROM posts WHERE status='published'";
       let params = [];
       if (category) {
+        // 根据 slug 查找分类名称
+        const catResult = await env.DB.prepare("SELECT name FROM categories WHERE slug=?").bind(category).first();
+        const catName = catResult ? catResult.name : category;
         sql += " AND category=?";
-        params.push(category);
+        params.push(catName);
       }
       sql += " ORDER BY created_at DESC";
       const { results } = await env.DB.prepare(sql).bind(...params).all();
@@ -326,13 +330,20 @@ async function handleAPI(request, env, path) {
   if (path === '/api/category' && method === 'POST') {
     try {
       const body = await request.json();
-      const slug = body.name.toLowerCase().replace(/[^\w]+/g, '-').replace(/^-|-$/g, '');
-      await env.DB.prepare(
-        "INSERT INTO categories (name, slug) VALUES (?, ?)"
-      ).bind(body.name, slug).run();
+      if (body.id) {
+        // 更新分类
+        await env.DB.prepare(
+          "UPDATE categories SET name=?, slug=?, description=? WHERE id=?"
+        ).bind(body.name, body.slug, body.description || '', body.id).run();
+      } else {
+        // 新建分类
+        await env.DB.prepare(
+          "INSERT INTO categories (name, slug, description) VALUES (?, ?, ?)"
+        ).bind(body.name, body.slug, body.description || '').run();
+      }
       return json({ success: true });
     } catch (e) {
-      console.error('添加分类失败:', e);
+      console.error('保存分类失败:', e);
       return json({ error: e.message }, 500);
     }
   }
@@ -799,7 +810,7 @@ function getFrontendHTML(settings) {
     fetch('/api/categories').then(r=>r.json()).then(cats=>{
       const list = document.getElementById('category-list');
       if(cats && Array.isArray(cats) && cats.length > 0) {
-        list.innerHTML = '<a href="/">全部</a>' + cats.map(c=>'<a href="/?category='+encodeURIComponent(c.name)+'">'+c.name+'</a>').join('');
+        list.innerHTML = '<a href="/">全部</a>' + cats.map(c=>'<a href="/?category='+encodeURIComponent(c.slug)+'">'+c.name+'</a>').join('');
       }
     });
     fetch('/api/links').then(r=>r.json()).then(links=>{
@@ -1039,7 +1050,7 @@ function getPostHTML(post, settings) {
     fetch('/api/categories').then(r=>r.json()).then(cats=>{
       const list = document.getElementById('category-list');
       if(cats && Array.isArray(cats) && cats.length > 0) {
-        list.innerHTML = '<a href="/">全部</a>' + cats.map(c=>'<a href="/?category='+encodeURIComponent(c.name)+'">'+c.name+'</a>').join('');
+        list.innerHTML = '<a href="/">全部</a>' + cats.map(c=>'<a href="/?category='+encodeURIComponent(c.slug)+'">'+c.name+'</a>').join('');
       }
     });
     fetch('/api/links').then(r=>r.json()).then(links=>{
@@ -1400,20 +1411,43 @@ function getAdminHTML() {
         <div v-if="currentPage==='category'">
           <div class="page-header">
             <h2>分类管理</h2>
+            <button class="btn" @click="showCategoryForm = true; editingCategory = null; categoryForm = { name: '', slug: '', description: '' }">添加分类</button>
           </div>
-          <div class="card">
-            <div class="form-group">
-              <label>添加分类</label>
-              <div style="display:flex;gap:12px">
-                <input v-model="categoryForm.name" placeholder="分类名称" style="flex:1" @keyup.enter="saveCategory">
-                <button class="btn" @click="saveCategory">添加</button>
+          
+          <!-- 分类表单 -->
+          <div v-if="showCategoryForm" class="card" style="margin-bottom:20px">
+            <h3 style="color:#794f27;margin-bottom:16px">{{ editingCategory ? '编辑分类' : '添加分类' }}</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>英文ID（用于URL）</label>
+                <input v-model="categoryForm.slug" placeholder="例如：tech, life" @input="categoryForm.slug = categoryForm.slug.toLowerCase().replace(/[^a-z0-9-]/g, '')">
+              </div>
+              <div class="form-group">
+                <label>中文名称</label>
+                <input v-model="categoryForm.name" placeholder="例如：技术教程">
               </div>
             </div>
-            <div style="margin-top:20px">
-              <h4 style="margin-bottom:12px;color:#794f27">已有分类</h4>
-              <div v-for="cat in categories" :key="cat.id" class="category-item">
-                <span class="name">{{ cat.name }}</span>
-                <button @click="deleteCategory(cat.id)">删除</button>
+            <div class="form-group">
+              <label>描述（可选）</label>
+              <input v-model="categoryForm.description" placeholder="分类描述">
+            </div>
+            <div style="display:flex;gap:10px;justify-content:flex-end">
+              <button class="btn btn-cancel" @click="showCategoryForm = false">取消</button>
+              <button class="btn" @click="saveCategory">保存</button>
+            </div>
+          </div>
+          
+          <!-- 分类列表 -->
+          <div v-for="cat in categories" :key="cat.id" class="card" style="margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="display:flex;gap:6px">
+                <button class="btn" @click="editCategory(cat)" style="padding:6px 14px;font-size:13px">编辑</button>
+                <button class="btn btn-danger" @click="deleteCategory(cat.id)" style="padding:6px 14px;font-size:13px">删除</button>
+              </div>
+              <div style="flex:1">
+                <span style="color:#794f27;font-weight:600">{{ cat.name }}</span>
+                <span style="color:#9f927d;font-size:0.85em;margin-left:8px">/{{ cat.slug }}</span>
+                <span v-if="cat.description" style="color:#9f927d;font-size:0.85em;margin-left:8px">- {{ cat.description }}</span>
               </div>
             </div>
           </div>
@@ -1521,7 +1555,9 @@ function getAdminHTML() {
         const categories = ref([]);
         const currentPage = ref('posts');
         const settingsForm = ref({ site_name: '', site_description: '', site_favicon: '', site_avatar: '', site_bio: '', site_links: '', site_author: '', site_footer: '' });
-        const categoryForm = ref({ name: '' });
+        const categoryForm = ref({ name: '', slug: '', description: '' });
+        const showCategoryForm = ref(false);
+        const editingCategory = ref(null);
 
         const check = () => {
           const token = localStorage.getItem('token');
@@ -1611,7 +1647,26 @@ function getAdminHTML() {
         };
 
         const saveCategory = async () => {
-          try { await api('/api/category', { method: 'POST', data: categoryForm.value }); await loadCategories(); categoryForm.value = { name: '' }; } catch(e) { alert('保存失败'); }
+          if (!categoryForm.value.name || !categoryForm.value.slug) {
+            alert('请填写英文ID和中文名称');
+            return;
+          }
+          try {
+            const data = { ...categoryForm.value };
+            if (editingCategory.value) data.id = editingCategory.value;
+            await api('/api/category', { method: 'POST', data });
+            await loadCategories();
+            showCategoryForm.value = false;
+            categoryForm.value = { name: '', slug: '', description: '' };
+            editingCategory.value = null;
+            showToast('保存成功');
+          } catch(e) { alert('保存失败'); }
+        };
+        
+        const editCategory = (cat) => {
+          editingCategory.value = cat.id;
+          categoryForm.value = { name: cat.name, slug: cat.slug, description: cat.description || '' };
+          showCategoryForm.value = true;
         };
 
         const deleteCategory = async (id) => {
@@ -1703,7 +1758,7 @@ function getAdminHTML() {
           setTimeout(() => { textarea.focus(); textarea.selectionStart = start + insert.length; textarea.selectionEnd = start + insert.length; }, 0);
         };
 
-        return { logged, password, login, logout, posts, editingId, form, coverPreview, toast, uploading, uploadProgress, openAdd, toggleEdit, handleCoverChange, handleDrop, savePost, deletePost, deleteCover, categories, currentPage, categoryForm, saveCategory, deleteCategory, settingsForm, saveSettings, handleFavicon, handleFaviconDrop, handleAvatar, handleAvatarDrop, insertMd, trashPosts, restorePost, permanentDelete, emptyTrash, confirmModal, showConfirm };
+        return { logged, password, login, logout, posts, editingId, form, coverPreview, toast, uploading, uploadProgress, openAdd, toggleEdit, handleCoverChange, handleDrop, savePost, deletePost, deleteCover, categories, currentPage, categoryForm, saveCategory, deleteCategory, editCategory, showCategoryForm, editingCategory, settingsForm, saveSettings, handleFavicon, handleFaviconDrop, handleAvatar, handleAvatarDrop, insertMd, trashPosts, restorePost, permanentDelete, emptyTrash, confirmModal, showConfirm };
       }
     }).mount('#app');
   <\/script>
