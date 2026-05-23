@@ -763,32 +763,35 @@ function getFrontendHTML(settings) {
     .profile-card .category-list a:hover, .profile-card .link-list a:hover { background: #e6f9f6; border-color: #19c8b9; color: #11a89b; }
     footer { text-align: center; padding: 30px 20px; color: #9f927d; font-size: 0.85em; font-weight: 500; }
     
+    .mobile-nav-toggle { display: none; position: fixed; top: 12px; left: 12px; z-index: 1001; width: 40px; height: 40px; background: #19c8b9; border: none; border-radius: 12px; color: #fff; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 #11a89b; }
+    .mobile-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
     @media (max-width: 768px) {
-      header { padding: 24px 16px; }
-      header h1 { font-size: 1.6em; }
-      header p { font-size: 0.9em; }
-      main { flex-direction: column; padding: 0 12px; gap: 16px; margin-top: 16px; }
-      .sidebar { width: 100%; order: 2; }
-      .profile-card { padding: 16px; border-radius: 16px; }
+      header { padding: 16px 16px 16px 56px; }
+      header h1 { font-size: 1.4em; }
+      header p { font-size: 0.85em; }
+      .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+      .mobile-overlay.show { display: block; }
+      main { flex-direction: row; padding: 0 12px; gap: 0; margin-top: 12px; position: relative; }
+      .sidebar { width: 260px; position: fixed; top: 0; left: -260px; height: 100vh; z-index: 1000; transition: left 0.3s ease; overflow-y: auto; background: #f8f8f0; padding: 16px; box-shadow: 2px 0 8px rgba(0,0,0,0.1); }
+      .sidebar.open { left: 0; }
+      .profile-card { border-radius: 16px; padding: 16px; }
       .profile-card .avatar { width: 56px; height: 56px; }
       .profile-card .name { font-size: 1em; }
-      .profile-card .bio { font-size: 0.8em; }
-      .profile-card .stats { gap: 12px; }
-      .profile-card .stat-num { font-size: 1em; }
-      .profile-card .category-list a, .profile-card .link-list a { padding: 6px 10px; font-size: 0.8em; }
-      .post-list { width: 100%; order: 1; gap: 12px; }
-      .post-card { flex-direction: column; border-radius: 16px; }
-      .post-card .post-cover { width: 100%; height: 160px; }
+      .post-list { width: 100%; gap: 16px; }
+      .post-card { flex-direction: row; border-radius: 16px; }
+      .post-card .post-cover { width: 120px; min-height: 100px; }
       .post-card .post-content { padding: 14px; }
-      .post-card h2 { font-size: 1.05em; margin-bottom: 6px; }
-      .post-card .excerpt { font-size: 0.85em; }
-      .post-card .meta { font-size: 0.75em; gap: 8px; flex-wrap: wrap; }
-      .post-card a.read-more { width: 100%; text-align: center; padding: 10px; font-size: 0.85em; }
+      .post-card h2 { font-size: 1em; }
+      .post-card .excerpt { font-size: 0.8em; }
+      .post-card .meta { font-size: 0.75em; }
+      .post-card a.read-more { padding: 6px 14px; font-size: 0.8em; }
       footer { padding: 20px 16px; font-size: 0.8em; }
     }
   </style>
 </head>
 <body>
+  <button class="mobile-nav-toggle" onclick="toggleNav()">☰</button>
+  <div class="mobile-overlay" id="mobileOverlay" onclick="toggleNav()"></div>
   <header>
     <h1><a href="/">${siteName}</a></h1>
     ${siteDesc ? `<p>${siteDesc}</p>` : ''}
@@ -838,6 +841,11 @@ function getFrontendHTML(settings) {
         list.innerHTML = links.map(l=>'<a href="'+l.url+'" target="_blank">'+l.name+'</a>').join('');
       }
     });
+    function toggleNav() {
+      document.querySelector('.sidebar').classList.toggle('open');
+      document.getElementById('mobileOverlay').classList.toggle('show');
+    }
+    
     async function loadPosts() {
       try {
         const res = await fetch('/api/posts' + (window.location.search || ''));
@@ -1003,32 +1011,35 @@ function getPostHTML(post, settings) {
     .back-link:active { transform: translateY(2px); box-shadow: 0 1px 0 0 #11a89b; }
     footer { text-align: center; padding: 30px 20px; color: #9f927d; font-size: 0.85em; font-weight: 500; }
     
+    .mobile-nav-toggle { display: none; position: fixed; top: 12px; left: 12px; z-index: 1001; width: 40px; height: 40px; background: #19c8b9; border: none; border-radius: 12px; color: #fff; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 #11a89b; }
+    .mobile-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
     @media (max-width: 768px) {
-      header { padding: 24px 16px; }
-      header h1 { font-size: 1.6em; }
-      header p { font-size: 0.9em; }
-      main { flex-direction: column; padding: 0 12px; gap: 16px; margin-top: 16px; }
-      .sidebar { width: 100%; order: 2; }
-      .profile-card { padding: 16px; border-radius: 16px; }
+      header { padding: 16px 16px 16px 56px; }
+      header h1 { font-size: 1.4em; }
+      header p { font-size: 0.85em; }
+      .mobile-nav-toggle { display: flex; align-items: center; justify-content: center; }
+      .mobile-overlay.show { display: block; }
+      main { flex-direction: row; padding: 0 12px; gap: 0; margin-top: 12px; position: relative; }
+      .sidebar { width: 260px; position: fixed; top: 0; left: -260px; height: 100vh; z-index: 1000; transition: left 0.3s ease; overflow-y: auto; background: #f8f8f0; padding: 16px; box-shadow: 2px 0 8px rgba(0,0,0,0.1); }
+      .sidebar.open { left: 0; }
+      .profile-card { border-radius: 16px; padding: 16px; }
       .profile-card .avatar { width: 56px; height: 56px; }
       .profile-card .name { font-size: 1em; }
-      .profile-card .bio { font-size: 0.8em; }
-      .profile-card .stats { gap: 12px; }
-      .profile-card .stat-num { font-size: 1em; }
-      .profile-card .category-list a, .profile-card .link-list a { padding: 6px 10px; font-size: 0.8em; }
-      .post-list { width: 100%; order: 1; gap: 12px; }
-      .post-card { flex-direction: column; border-radius: 16px; }
-      .post-card .post-cover { width: 100%; height: 160px; }
+      .post-list { width: 100%; gap: 16px; }
+      .post-card { flex-direction: row; border-radius: 16px; }
+      .post-card .post-cover { width: 120px; min-height: 100px; }
       .post-card .post-content { padding: 14px; }
-      .post-card h2 { font-size: 1.05em; margin-bottom: 6px; }
-      .post-card .excerpt { font-size: 0.85em; }
-      .post-card .meta { font-size: 0.75em; gap: 8px; flex-wrap: wrap; }
-      .post-card a.read-more { width: 100%; text-align: center; padding: 10px; font-size: 0.85em; }
+      .post-card h2 { font-size: 1em; }
+      .post-card .excerpt { font-size: 0.8em; }
+      .post-card .meta { font-size: 0.75em; }
+      .post-card a.read-more { padding: 6px 14px; font-size: 0.8em; }
       footer { padding: 20px 16px; font-size: 0.8em; }
     }
   </style>
 </head>
 <body>
+  <button class="mobile-nav-toggle" onclick="toggleNav()">☰</button>
+  <div class="mobile-overlay" id="mobileOverlay" onclick="toggleNav()"></div>
   <header>
     <h1><a href="/">${siteName}</a></h1>
     ${siteDesc ? `<p>${siteDesc}</p>` : ''}
@@ -1188,16 +1199,21 @@ function getAdminHTML() {
     
     .toast { position: fixed; bottom: 20px; right: 20px; padding: 16px 24px; background: #6fba2c; color: #fff; border-radius: 50px; z-index: 2000; font-weight: 600; box-shadow: 0 4px 0 0 #5a9e1e; }
     
+    .admin-mobile-toggle { display: none; position: fixed; top: 12px; left: 12px; z-index: 1001; width: 40px; height: 40px; background: #19c8b9; border: none; border-radius: 12px; color: #fff; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 #11a89b; }
+    .admin-mobile-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999; }
     @media (max-width: 768px) {
-      .admin-layout { flex-direction: column; }
-      .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 0; }
-      .sidebar-header { padding: 12px 16px; }
-      .sidebar-header h1 { font-size: 15px; }
-      .sidebar-menu { display: flex; padding: 8px 12px; gap: 6px; flex-wrap: nowrap; overflow-x: auto; }
-      .sidebar-menu a { white-space: nowrap; padding: 8px 12px; margin: 0; font-size: 13px; border-radius: 8px; }
-      .sidebar-footer { padding: 8px 12px; }
-      .sidebar-footer button { padding: 8px 16px; font-size: 13px; }
-      .main-content { padding: 16px; }
+      .admin-mobile-toggle { display: flex; align-items: center; justify-content: center; }
+      .admin-mobile-overlay.show { display: block; }
+      .admin-layout { flex-direction: row; }
+      .sidebar { width: 240px; position: fixed; top: 0; left: -240px; height: 100vh; z-index: 1000; transition: left 0.3s ease; flex-direction: column; padding: 0; box-shadow: 2px 0 8px rgba(0,0,0,0.1); }
+      .sidebar.open { left: 0; }
+      .sidebar-header { padding: 16px; display: block; }
+      .sidebar-header h1 { font-size: 16px; }
+      .sidebar-menu { display: flex; flex-direction: column; padding: 8px 12px; gap: 4px; }
+      .sidebar-menu a { white-space: nowrap; padding: 10px 12px; margin: 0; font-size: 14px; border-radius: 10px; }
+      .sidebar-footer { padding: 12px 16px; margin-top: auto; }
+      .sidebar-footer button { padding: 10px 16px; font-size: 14px; width: 100%; }
+      .main-content { padding: 16px; margin-left: 0; width: 100%; }
       .page-header { flex-direction: column; gap: 8px; align-items: flex-start; }
       .page-header h2 { font-size: 1.2em; }
       .card { padding: 14px; border-radius: 16px; margin-bottom: 12px; }
@@ -1221,6 +1237,8 @@ function getAdminHTML() {
         <button @click="login">登录</button>
       </div>
     </div>
+    <button class="admin-mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.getElementById('adminOverlay').classList.toggle('show')">☰</button>
+    <div class="admin-mobile-overlay" id="adminOverlay" onclick="document.querySelector('.sidebar').classList.toggle('open');document.getElementById('adminOverlay').classList.toggle('show')"></div>
     <div v-else class="admin-layout">
       <nav class="sidebar">
         <div class="sidebar-header">
