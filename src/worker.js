@@ -1107,10 +1107,66 @@ function getPostHTML(post, settings) {
     });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+  <style>
+    pre {
+      background: #282c34;
+      border-radius: 12px;
+      padding: 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+      border: 2px solid #3d4048;
+    }
+    pre code {
+      font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #abb2bf;
+      background: none;
+      padding: 0;
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+    }
+    code {
+      font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
+      background: #f0e8d8;
+      color: #e05a5a;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      border: 1.5px solid #e8e0cc;
+    }
+    .hljs-keyword, .hljs-selector-tag { color: #c678dd; }
+    .hljs-string, .hljs-attr { color: #98c379; }
+    .hljs-number, .hljs-literal { color: #d19a66; }
+    .hljs-comment { color: #5c6370; font-style: italic; }
+    .hljs-function .hljs-title, .hljs-title.function_ { color: #61afef; }
+    .hljs-built_in { color: #e5c07b; }
+    .hljs-type, .hljs-class .hljs-title { color: #e5c07b; }
+    .hljs-params { color: #abb2bf; }
+    .hljs-meta { color: #61afef; }
+    .hljs-punctuation { color: #abb2bf; }
+  </style>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       var content = ${JSON.stringify(post.content)};
+      marked.setOptions({
+        highlight: function(code, lang) {
+          if (lang && hljs.getLanguage(lang)) {
+            try { return hljs.highlight(code, {language: lang}).value; } catch(e) {}
+          }
+          try { return hljs.highlightAuto(code).value; } catch(e) {}
+          return code;
+        },
+        breaks: true,
+        gfm: true
+      });
       document.getElementById('post-content').innerHTML = marked.parse(content);
+      document.querySelectorAll('pre code').forEach(function(block) {
+        hljs.highlightElement(block);
+      });
     });
   </script>
 </body>
