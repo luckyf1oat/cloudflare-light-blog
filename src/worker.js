@@ -1161,30 +1161,61 @@ function getAdminHTML() {
     .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px 18px; border: 2.5px solid var(--input-border, #c4b89e); border-radius: 50px; font-size: 14px; background-color: #f8f8f0; color: var(--text-body, #725d42); box-shadow: 0 3px 0 0 var(--input-shadow, #d4c9b4); font-weight: 500; }
     .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #ffcc00; box-shadow: 0 3px 0 0 #e0b800; outline: none; }
     .form-group textarea { border-radius: 18px; min-height: 80px; resize: vertical; }
-    .form-group select { 
-      appearance: none !important; 
-      -webkit-appearance: none !important; 
-      -moz-appearance: none !important; 
-      background-color: #f8f8f0 !important;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23725d42' d='M6 8L1 3h10z'/%3E%3C/svg%3E") !important;
-      background-repeat: no-repeat !important;
-      background-position: right 16px center !important;
-      padding-right: 40px !important; 
-      cursor: pointer; 
-      border-radius: 50px !important;
-      border: 2.5px solid #c4b89e !important;
+    .custom-select { position: relative; }
+    .custom-select-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: #f8f8f0;
+      border: 2.5px solid #c4b89e;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 3px 0 0 #d4c9b4;
+      transition: all 0.25s;
+      font-weight: 500;
+      color: #725d42;
+      min-height: 45px;
     }
-    select.form-control,
-    .form-group select,
-    div select {
-      appearance: none !important;
-      -webkit-appearance: none !important;
+    .custom-select-trigger:hover { border-color: #a89878; }
+    .custom-select-trigger.active { border-color: #ffcc00; box-shadow: 0 3px 0 0 #e0b800; }
+    .custom-select-trigger::after {
+      content: '';
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid #725d42;
+      transition: transform 0.2s;
     }
-    .form-group select:hover { 
-      border-color: #a89878; 
+    .custom-select-trigger.active::after { transform: rotate(180deg); }
+    .custom-select-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: #f8f8f0;
+      border: 2px solid #c4b89e;
+      border-radius: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      box-shadow: 0 8px 24px rgba(107, 92, 67, 0.2);
     }
-    .form-group select:focus { border-color: #ffcc00; box-shadow: 0 3px 0 0 #e0b800; outline: none; }
-    .form-group select option { padding: 10px; background: #f8f8f0; color: #725d42; }
+    .custom-select-dropdown.show { display: block; }
+    .custom-select-option {
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-weight: 500;
+    }
+    .custom-select-option:first-child { border-radius: 10px 10px 0 0; }
+    .custom-select-option:last-child { border-radius: 0 0 10px 10px; }
+    .custom-select-option:hover { background: #e6f9f6; color: #11a89b; }
+    .custom-select-option.selected { background: #19c8b9; color: #fff; }
+    .custom-select-option.disabled { color: #c4b89e; cursor: default; }
+    .custom-select-option.disabled:hover { background: transparent; color: #c4b89e; }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .actions { display: flex; gap: 6px; }
     .actions button { padding: 6px 14px; border: none; border-radius: 50px; font-size: 13px; font-weight: 600; cursor: pointer; }
@@ -1256,9 +1287,25 @@ function getAdminHTML() {
                   <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px"><button class="btn" @click="savePost">保存</button><button class="btn btn-cancel" @click="editingId=null">取消</button></div>
                 </div>
                 <div class="editor-side">
-                  <div class="form-group"><label>状态</label><select v-model="form.status"><option value="draft">草稿</option><option value="published">已发布</option></select></div>
+                  <div class="form-group"><label>状态</label>
+                <div class="custom-select" @click.stop>
+                  <div class="custom-select-trigger" :class="{active: customSelects['status']}" @click="toggleSelect('status')">{{ form.status === 'draft' ? '草稿' : '已发布' }}</div>
+                  <div class="custom-select-dropdown" :class="{show: customSelects['status']}">
+                    <div class="custom-select-option" :class="{selected: form.status==='draft'}" @click="selectOption('status', 'draft', 'status')">草稿</div>
+                    <div class="custom-select-option" :class="{selected: form.status==='published'}" @click="selectOption('status', 'published', 'status')">已发布</div>
+                  </div>
+                </div>
+              </div>
                   <div class="form-group"><label>日期</label><input type="date" v-model="form.published_at"></div>
-                  <div class="form-group"><label>分类</label><select v-model="form.category"><option value="">请选择</option><option v-for="cat in categories" :value="cat.name">{{cat.name}}</option></select></div>
+                  <div class="form-group"><label>分类</label>
+                <div class="custom-select" @click.stop>
+                  <div class="custom-select-trigger" :class="{active: customSelects['category']}" @click="toggleSelect('category')">{{ form.category || '请选择' }}</div>
+                  <div class="custom-select-dropdown" :class="{show: customSelects['category']}">
+                    <div class="custom-select-option" @click="selectOption('category', '', 'category')">请选择</div>
+                    <div v-for="cat in categories" :key="cat.id" class="custom-select-option" :class="{selected: form.category===cat.name}" @click="selectOption('category', cat.name, 'category')">{{ cat.name }}</div>
+                  </div>
+                </div>
+              </div>
                   <div class="form-group"><label>标签</label><input v-model="form.tags" placeholder="用英文逗号隔开"></div>
                   <div class="form-group"><label>密码（可选）</label><input v-model="form.password" type="password" placeholder="留空无需密码"></div>
                   <div class="form-group">
@@ -1303,9 +1350,25 @@ function getAdminHTML() {
               <button class="btn" @click="savePost" style="width:100%;margin-top:16px">保存文章</button>
             </div></div>
             <div class="editor-side"><div class="card">
-              <div class="form-group"><label>状态</label><select v-model="form.status"><option value="draft">草稿</option><option value="published">已发布</option></select></div>
+              <div class="form-group"><label>状态</label>
+                <div class="custom-select" @click.stop>
+                  <div class="custom-select-trigger" :class="{active: customSelects['status']}" @click="toggleSelect('status')">{{ form.status === 'draft' ? '草稿' : '已发布' }}</div>
+                  <div class="custom-select-dropdown" :class="{show: customSelects['status']}">
+                    <div class="custom-select-option" :class="{selected: form.status==='draft'}" @click="selectOption('status', 'draft', 'status')">草稿</div>
+                    <div class="custom-select-option" :class="{selected: form.status==='published'}" @click="selectOption('status', 'published', 'status')">已发布</div>
+                  </div>
+                </div>
+              </div>
               <div class="form-group"><label>日期</label><input type="date" v-model="form.published_at"></div>
-              <div class="form-group"><label>分类</label><select v-model="form.category"><option value="">请选择</option><option v-for="cat in categories" :value="cat.name">{{cat.name}}</option></select></div>
+              <div class="form-group"><label>分类</label>
+                <div class="custom-select" @click.stop>
+                  <div class="custom-select-trigger" :class="{active: customSelects['category']}" @click="toggleSelect('category')">{{ form.category || '请选择' }}</div>
+                  <div class="custom-select-dropdown" :class="{show: customSelects['category']}">
+                    <div class="custom-select-option" @click="selectOption('category', '', 'category')">请选择</div>
+                    <div v-for="cat in categories" :key="cat.id" class="custom-select-option" :class="{selected: form.category===cat.name}" @click="selectOption('category', cat.name, 'category')">{{ cat.name }}</div>
+                  </div>
+                </div>
+              </div>
               <div class="form-group"><label>标签</label><input v-model="form.tags" placeholder="用英文逗号隔开，如：标签1,标签2"></div>
               <div class="form-group"><label>密码（可选）</label><input v-model="form.password" type="password" placeholder="留空则无需密码"></div>
               <div class="form-group">
@@ -1383,10 +1446,13 @@ function getAdminHTML() {
                 </div>
                 <div class="form-group">
                   <label>主题风格</label>
-                  <select v-model="settingsForm.site_theme" @change="applyTheme">
-                    <option value="animal-forest">🌲 动物森林</option>
-                    <option value="ocean-breeze">🌊 海洋微风</option>
-                  </select>
+                  <div class="custom-select" @click.stop>
+                    <div class="custom-select-trigger" :class="{active: customSelects['theme']}" @click="toggleSelect('theme')">{{ settingsForm.site_theme === 'animal-forest' ? '🌲 动物森林' : '🌊 海洋微风' }}</div>
+                    <div class="custom-select-dropdown" :class="{show: customSelects['theme']}">
+                      <div class="custom-select-option" :class="{selected: settingsForm.site_theme==='animal-forest'}" @click="selectOption('theme', 'animal-forest', 'theme');applyTheme()">🌲 动物森林</div>
+                      <div class="custom-select-option" :class="{selected: settingsForm.site_theme==='ocean-breeze'}" @click="selectOption('theme', 'ocean-breeze', 'theme');applyTheme()">🌊 海洋微风</div>
+                    </div>
+                  </div>
                   <p style="font-size:12px;color:#9f927d;margin-top:4px">选择不同的主题风格，也可自行开发新主题</p>
                 </div>
                 <div class="form-group"><label>网站页脚（HTML）</label><textarea v-model="settingsForm.site_footer" rows="3"></textarea></div>
@@ -1562,8 +1628,36 @@ function getAdminHTML() {
           root.style.setProperty('--input-shadow', theme.inputShadow);
         };
 
-        onMounted(() => { check(); loadCategories(); loadSettings(); loadTrash(); });
-        return { logged, password, login, logout, posts, editingId, form, coverPreview, toast, openAdd, toggleEdit, handleCoverChange, handleDrop, deleteCover, savePost, deletePost, categories, currentPage, categoryForm, saveCategory, deleteCategory, editCategory, editingCategory, settingsForm, saveSettings, handleFavicon, handleFaviconDrop, handleAvatar, handleAvatarDrop, trashPosts, restorePost, permanentDelete, emptyTrash, confirmModal, showConfirm, insertMd, applyTheme };
+        // 自定义下拉组件
+        const customSelects = ref({});
+        
+        const toggleSelect = (id) => {
+          Object.keys(customSelects.value).forEach(key => {
+            if (key !== id) customSelects.value[key] = false;
+          });
+          customSelects.value[id] = !customSelects.value[id];
+        };
+        
+        const selectOption = (id, value, field) => {
+          if (field === 'category') form.value.category = value;
+          else if (field === 'status') form.value.status = value;
+          else if (field === 'theme') settingsForm.value.site_theme = value;
+          customSelects.value[id] = false;
+        };
+        
+        const getSelectLabel = (options, value) => {
+          const opt = options.find(o => o.value === value);
+          return opt ? opt.label : '请选择';
+        };
+        
+        const closeAllSelects = () => {
+          Object.keys(customSelects.value).forEach(key => {
+            customSelects.value[key] = false;
+          });
+        };
+
+        onMounted(() => { check(); loadCategories(); loadSettings(); loadTrash(); document.addEventListener('click', closeAllSelects); });
+        return { logged, password, login, logout, posts, editingId, form, coverPreview, toast, openAdd, toggleEdit, handleCoverChange, handleDrop, deleteCover, savePost, deletePost, categories, currentPage, categoryForm, saveCategory, deleteCategory, editCategory, editingCategory, settingsForm, saveSettings, handleFavicon, handleFaviconDrop, handleAvatar, handleAvatarDrop, trashPosts, restorePost, permanentDelete, emptyTrash, confirmModal, showConfirm, insertMd, applyTheme, customSelects, toggleSelect, selectOption, getSelectLabel };
       }
     }).mount('#app');
   <\/script>
