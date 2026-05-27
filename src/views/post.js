@@ -258,32 +258,64 @@ export function getPostHTML(post, settings) {
     .hljs-deletion { color: #ffdcd7; background: rgba(248,81,73,0.15); }
   </style>
   <script>
-    function escapeHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    // 在 marked 解析前，转义代码块外部的 HTML 标签（防止 XSS）
+    function sanitizeMarkdown(md) {
+      var result = '';
+      var i = 0;
+      var fence = String.fromCharCode(96) + String.fromCharCode(96) + String.fromCharCode(96);
+      var tick = String.fromCharCode(96);
+      var nl = String.fromCharCode(10);
+      while (i < md.length) {
+        // 围栏代码块（原样保留，不做转义）
+        if (md[i] === tick && md[i+1] === tick && md[i+2] === tick) {
+          result += fence;
+          i += 3;
+          while (i < md.length) {
+            if (md[i] === nl && md[i+1] === tick && md[i+2] === tick && md[i+3] === tick) {
+              result += nl + fence;
+              i += 4;
+              break;
+            }
+            result += md[i];
+            i++;
+          }
+          continue;
+        }
+        // 行内代码（原样保留）
+        if (md[i] === tick) {
+          var end = md.indexOf(tick, i + 1);
+          if (end === -1) { result += md.substring(i); break; }
+          result += md.substring(i, end + 1);
+          i = end + 1;
+          continue;
+        }
+        // HTML 标签 → 转义
+        if (md[i] === '<') {
+          var close = md.indexOf('>', i);
+          if (close !== -1) {
+            var tagContent = md.substring(i + 1, close);
+            if (/^\\/?[a-zA-Z!\\[\\-]/.test(tagContent)) {
+              result += '&lt;' + tagContent + '&gt;';
+              i = close + 1;
+              continue;
+            }
+          }
+          result += '&lt;';
+          i++;
+          continue;
+        }
+        result += md[i];
+        i++;
+      }
+      return result;
     }
 
     document.addEventListener('DOMContentLoaded', function() {
       var content = ${JSON.stringify(post.content)};
-      marked.use({
-        renderer: {
-          code: function(code) {
-            var text = typeof code === 'object' ? code.text : code;
-            var lang = typeof code === 'object' ? code.lang : arguments[1];
-            var escaped = escapeHtml(text);
-            if (lang && hljs.getLanguage(lang)) {
-              try { return '<pre><code class="hljs language-' + lang + '">' + hljs.highlight(text, {language: lang}).value + '</code></pre>'; } catch(e) {}
-            }
-            try { return '<pre><code class="hljs">' + hljs.highlightAuto(text).value + '</code></pre>'; } catch(e) {}
-            return '<pre><code>' + escaped + '</code></pre>';
-          },
-          codespan: function(code) {
-            var text = typeof code === 'object' ? code.text : code;
-            return '<code>' + escapeHtml(text) + '</code>';
-          }
-        }
-      });
+      var safe = sanitizeMarkdown(content);
       marked.setOptions({ breaks: true, gfm: true });
-      document.getElementById('post-content').innerHTML = marked.parse(content);
+      document.getElementById('post-content').innerHTML = marked.parse(safe);
+      document.querySelectorAll('pre code').forEach(function(block) { hljs.highlightElement(block); });
       initLightbox();
     });
   </script>
