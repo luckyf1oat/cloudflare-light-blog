@@ -66,11 +66,17 @@ export function getPostHTML(post, settings) {
     .back-link { display: inline-block; margin-bottom: 20px; padding: 10px 24px; background: #19c8b9; color: #fff; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 0.9em; box-shadow: 0 4px 0 0 #11a89b; transition: all 0.25s; }
     .back-link:hover { transform: translateY(-1px); box-shadow: 0 5px 0 0 #11a89b; }
     footer { text-align: center; padding: 30px 20px; color: #9f927d; font-size: 0.85em; }
-    .lightbox { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: center; justify-content: center; cursor: zoom-out; }
+    .lightbox { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.92); z-index: 2000; display: none; align-items: center; justify-content: center; cursor: zoom-out; }
     .lightbox.active { display: flex; }
-    .lightbox img { max-width: 90%; max-height: 90%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); cursor: default; }
-    .lightbox-close { position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; color: #fff; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-    .lightbox-close:hover { background: rgba(255,255,255,0.3); }
+    .lightbox img { max-width: 85%; max-height: 85%; border-radius: 12px; border: 4px solid rgba(255,255,255,0.3); box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.1); cursor: default; transition: opacity 0.2s; }
+    .lightbox-close { position: absolute; top: 20px; right: 20px; width: 44px; height: 44px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; color: #fff; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1; transition: all 0.2s; }
+    .lightbox-close:hover { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.5); }
+    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 50px; height: 50px; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; color: #fff; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 1; transition: all 0.2s; user-select: none; }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.5); transform: translateY(-50%) scale(1.05); }
+    .lightbox-nav:active { transform: translateY(-50%) scale(0.95); }
+    .lightbox-prev { left: 20px; }
+    .lightbox-next { right: 20px; }
+    .lightbox-counter { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600; background: rgba(0,0,0,0.5); padding: 6px 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); }
     .back-to-top { position: fixed; bottom: 30px; right: 30px; width: 44px; height: 44px; background: #19c8b9; color: #fff; border: none; border-radius: 50%; font-size: 20px; cursor: pointer; box-shadow: 0 4px 0 0 #11a89b; display: flex; align-items: center; justify-content: center; z-index: 998; opacity: 0; pointer-events: none; transition: all 0.25s; }
     .back-to-top.show { opacity: 1; pointer-events: auto; }
     .mobile-nav-toggle { display: none; position: fixed; top: 12px; left: 12px; z-index: 1004; width: 40px; height: 40px; background: #19c8b9; border: none; border-radius: 12px; color: #fff; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 #11a89b; transition: left 0.3s; }
@@ -139,7 +145,10 @@ export function getPostHTML(post, settings) {
   </main>
   <div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
     <button class="lightbox-close" onclick="closeLightbox(event)">×</button>
+    <button class="lightbox-nav lightbox-prev" onclick="event.stopPropagation();navLightbox(-1)">‹</button>
     <img id="lightbox-img" src="" alt="">
+    <button class="lightbox-nav lightbox-next" onclick="event.stopPropagation();navLightbox(1)">›</button>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
   </div>
   <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
   <footer>${settings.site_footer ? escapeHtml(settings.site_footer) : '&copy; 2026 ' + escapeHtml(siteName)}</footer>
@@ -169,23 +178,58 @@ export function getPostHTML(post, settings) {
       document.querySelector('.mobile-nav-toggle').classList.toggle('nav-open');
     }
 
+    var lightboxImages = [];
+    var lightboxIndex = 0;
+
     function initLightbox() {
-      document.querySelectorAll('.post-article img').forEach(function(img) {
+      lightboxImages = Array.from(document.querySelectorAll('.post-article img'));
+      lightboxImages.forEach(function(img, index) {
         img.addEventListener('click', function() {
-          document.getElementById('lightbox-img').src = this.src;
-          document.getElementById('lightbox').classList.add('active');
-          document.body.style.overflow = 'hidden';
+          openLightbox(index);
         });
       });
     }
+
+    function openLightbox(index) {
+      lightboxIndex = index;
+      updateLightbox();
+      document.getElementById('lightbox').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function updateLightbox() {
+      if (!lightboxImages[lightboxIndex]) return;
+      document.getElementById('lightbox-img').src = lightboxImages[lightboxIndex].src;
+      var counter = document.getElementById('lightbox-counter');
+      if (lightboxImages.length > 1) {
+        counter.textContent = (lightboxIndex + 1) + ' / ' + lightboxImages.length;
+        counter.style.display = 'block';
+      } else {
+        counter.style.display = 'none';
+      }
+    }
+
+    function navLightbox(dir) {
+      var newIndex = lightboxIndex + dir;
+      if (newIndex < 0) newIndex = lightboxImages.length - 1;
+      if (newIndex >= lightboxImages.length) newIndex = 0;
+      lightboxIndex = newIndex;
+      updateLightbox();
+    }
+
     function closeLightbox(e) {
       if (e.target.id === 'lightbox' || e.target.classList.contains('lightbox-close')) {
         document.getElementById('lightbox').classList.remove('active');
         document.body.style.overflow = '';
       }
     }
+
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') { document.getElementById('lightbox').classList.remove('active'); document.body.style.overflow = ''; }
+      var lb = document.getElementById('lightbox');
+      if (!lb.classList.contains('active')) return;
+      if (e.key === 'Escape') { lb.classList.remove('active'); document.body.style.overflow = ''; }
+      else if (e.key === 'ArrowLeft') navLightbox(-1);
+      else if (e.key === 'ArrowRight') navLightbox(1);
     });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
