@@ -42,7 +42,7 @@ export function getPostHTML(post, settings) {
     header h1 { font-size: 2.5em; font-weight: 800; margin-bottom: 8px; }
     header a { color: #fff; text-decoration: none; }
     header p { opacity: 0.9; font-size: 1.1em; font-weight: 500; }
-    main { max-width: 1100px; margin: 30px auto; padding: 0 20px; display: flex; gap: 24px; align-items: flex-start; }
+    main { max-width: 1124px; margin: 30px auto; padding: 0 20px; display: flex; gap: 24px; align-items: flex-start; }
     .sidebar { width: 280px; flex-shrink: 0; }
     .content-area { flex: 1; min-width: 0; }
     .profile-card { background: #f7f3df; border-radius: 20px; padding: 24px; box-shadow: 0 4px 10px rgba(107, 92, 67, 0.42); border: 2px solid #e8e0cc; }
