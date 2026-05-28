@@ -199,11 +199,11 @@ export function getAdminHTML() {
               <tbody>
                 <template v-for="post in posts" :key="post.id">
                   <tr style="border-top:1px solid #e8e0cc">
-                    <td style="padding:10px 16px"><button class="delete" @click="deletePost(post.id)" style="padding:4px 10px;font-size:12px">删除</button></td>
-                    <td style="padding:10px 16px"><button class="edit" @click="toggleEdit(post)" style="padding:4px 10px;font-size:12px">{{editingId===post.id?'收起':'编辑'}}</button></td>
+                    <td style="padding:10px 16px"><button class="delete" @click="deletePost(post.id)" style="padding:5px 14px;border:none;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s">删除</button></td>
+                    <td style="padding:10px 16px"><button class="edit" @click="toggleEdit(post)" style="padding:5px 14px;border:none;border-radius:50px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s">{{editingId===post.id?'收起':'编辑'}}</button></td>
                     <td style="padding:10px 16px;color:#794f27;font-weight:600;font-size:14px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{post.title}}</td>
                     <td style="padding:10px 16px;color:#9f927d;font-size:13px">{{post.category}}</td>
-                    <td style="padding:10px 16px;text-align:center"><span :style="{display:'inline-block',width:'8px',height:'8px',borderRadius:'50%',background:post.status==='published'?'#22c55e':'#9f927d'}"></span></td>
+                    <td style="padding:10px 16px;text-align:center;white-space:nowrap"><span :style="{display:'inline-block',width:'8px',height:'8px',borderRadius:'50%',background:post.status==='published'?'#22c55e':'#9f927d',marginRight:'6px',verticalAlign:'middle'}"></span><span style="font-size:13px;color:#725d42;verticalAlign:'middle'">{{post.status==='published'?'已发布':'草稿'}}</span></td>
                     <td style="padding:10px 16px;text-align:right;color:#9f927d;font-size:13px">{{new Date(post.published_at || post.created_at).toLocaleDateString('zh-CN')}}</td>
                   </tr>
                   <tr v-if="editingId===post.id">
