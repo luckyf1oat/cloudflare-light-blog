@@ -259,45 +259,20 @@ export function getPostHTML(post, settings) {
   </style>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      var raw = ${JSON.stringify(post.content)};
-
-      // 在解析前，将 HTML 标签转义为 &amp;lt; 形式
-      // marked 会把 &amp; 保留 → 最终浏览器输出 &lt; 显示为 <
-      function escapeHtmlForMarked(text) {
-        var result = '';
-        var i = 0;
-        var tick = String.fromCharCode(96);
-        var nl = String.fromCharCode(10);
-        var fence = tick+tick+tick;
-        while (i < text.length) {
-          // 围栏代码块：原样保留
-          if (text[i]===tick && text[i+1]===tick && text[i+2]===tick) {
-            var end = text.indexOf(nl+fence, i+3);
-            if (end === -1) { result += text.substring(i); break; }
-            result += text.substring(i, end+4);
-            i = end+4;
-            continue;
-          }
-          // 行内代码：原样保留
-          if (text[i] === tick) {
-            var end = text.indexOf(tick, i+1);
-            if (end === -1) { result += text.substring(i); break; }
-            result += text.substring(i, end+1);
-            i = end+1;
-            continue;
-          }
-          // < 和 > → 双重转义（&amp;lt; / &amp;gt;）
-          if (text[i] === '<') { result += '&amp;lt;'; i++; continue; }
-          if (text[i] === '>') { result += '&amp;gt;'; i++; continue; }
-          result += text[i];
-          i++;
-        }
-        return result;
-      }
-
-      var safe = escapeHtmlForMarked(raw);
+      var content = ${JSON.stringify(post.content)};
       marked.setOptions({ breaks: true, gfm: true });
-      document.getElementById('post-content').innerHTML = marked.parse(safe);
+      var html = marked.parse(content);
+
+      // 后处理：找到 marked 输出中未被 <pre><code> 包裹的转义 HTML
+      // 将它们包装为代码块，使其获得代码框样式
+      html = html.replace(/(<p>|<br>|^)((?:.*?(?:&lt;\/?[a-zA-Z][^&]*?&gt;).*?[
+]?)+)/gm, function(match, prefix, body) {
+        if (body.indexOf('<pre') !== -1) return match;
+        if (body.indexOf('&lt;') === -1) return match;
+        return prefix + '<pre><code>' + body.trim() + '</code></pre>';
+      });
+
+      document.getElementById('post-content').innerHTML = html;
       document.querySelectorAll('pre code').forEach(function(block) { hljs.highlightElement(block); });
       initLightbox();
     });
