@@ -188,23 +188,25 @@ export function getAdminHTML() {
             <table style="width:100%;border-collapse:collapse">
               <thead>
                 <tr style="background:#f0e8d8">
-                  <th style="padding:12px 16px;text-align:center;color:#794f27;font-weight:700;font-size:14px;width:70px;white-space:nowrap">删除</th>
-                  <th style="padding:12px 16px;text-align:center;color:#794f27;font-weight:700;font-size:14px;width:70px;white-space:nowrap">编辑</th>
-                  <th style="padding:12px 16px;text-align:left;color:#794f27;font-weight:700;font-size:14px">文章标题</th>
-                  <th style="padding:12px 16px;text-align:left;color:#794f27;font-weight:700;font-size:14px;width:100px">分类</th>
-                  <th style="padding:12px 16px;text-align:center;color:#794f27;font-weight:700;font-size:14px;width:100px">状态</th>
-                  <th style="padding:12px 16px;text-align:right;color:#794f27;font-weight:700;font-size:14px;width:120px">发布日期</th>
+                  <th style="padding:16px 16px;text-align:center;color:#794f27;font-weight:700;font-size:15px;width:70px;white-space:nowrap">删除</th>
+                  <th style="padding:16px 16px;text-align:center;color:#794f27;font-weight:700;font-size:15px;width:70px;white-space:nowrap">编辑</th>
+                  <th style="padding:16px 16px;text-align:center;color:#794f27;font-weight:700;font-size:15px;width:60px">ID</th>
+                  <th style="padding:16px 16px;text-align:left;color:#794f27;font-weight:700;font-size:15px">文章标题</th>
+                  <th style="padding:16px 16px;text-align:left;color:#794f27;font-weight:700;font-size:15px;width:100px">分类</th>
+                  <th style="padding:16px 16px;text-align:center;color:#794f27;font-weight:700;font-size:15px;width:100px">状态</th>
+                  <th style="padding:16px 16px;text-align:right;color:#794f27;font-weight:700;font-size:15px;width:120px">发布日期</th>
                 </tr>
               </thead>
               <tbody>
                 <template v-for="post in posts" :key="post.id">
                   <tr style="border-top:1px solid #e8e0cc">
-                    <td style="padding:10px 16px;text-align:center;white-space:nowrap"><button class="delete" @click="deletePost(post.id)" style="padding:5px 14px;border:none;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">删除</button></td>
-                    <td style="padding:10px 16px;text-align:center;white-space:nowrap"><button class="edit" @click="toggleEdit(post)" style="padding:5px 14px;border:none;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">{{editingId===post.id?'收起':'编辑'}}</button></td>
-                    <td style="padding:10px 16px;color:#794f27;font-weight:600;font-size:15px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{post.title}}</td>
-                    <td style="padding:10px 16px;color:#9f927d;font-size:14px">{{post.category}}</td>
-                    <td style="padding:10px 16px;text-align:center;white-space:nowrap"><span :style="{display:'inline-block',width:'8px',height:'8px',borderRadius:'50%',background:post.status==='published'?'#22c55e':'#9f927d',marginRight:'6px',verticalAlign:'middle'}"></span><span style="font-size:14px;color:#725d42;vertical-align:middle">{{post.status==='published'?'已发布':'草稿'}}</span></td>
-                    <td style="padding:10px 16px;text-align:right;color:#9f927d;font-size:14px">{{new Date(post.published_at || post.created_at).toLocaleDateString('zh-CN')}}</td>
+                    <td style="padding:14px 16px;text-align:center;white-space:nowrap"><button class="delete" @click="deletePost(post.id)" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">删除</button></td>
+                    <td style="padding:14px 16px;text-align:center;white-space:nowrap"><button class="edit" @click="toggleEdit(post)" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">{{editingId===post.id?'收起':'编辑'}}</button></td>
+                    <td style="padding:14px 16px;text-align:center;color:#9f927d;font-size:14px">#{{post.id}}</td>
+                    <td style="padding:14px 16px;color:#794f27;font-weight:600;font-size:16px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{post.title}}</td>
+                    <td style="padding:14px 16px;color:#9f927d;font-size:15px">{{post.category}}</td>
+                    <td style="padding:14px 16px;text-align:center;white-space:nowrap"><span :style="{display:'inline-block',width:'8px',height:'8px',borderRadius:'50%',background:post.status==='published'?'#22c55e':'#9f927d',marginRight:'6px',verticalAlign:'middle'}"></span><span style="font-size:15px;color:#725d42;vertical-align:middle">{{post.status==='published'?'已发布':'草稿'}}</span></td>
+                    <td style="padding:14px 16px;text-align:right;color:#9f927d;font-size:15px">{{new Date(post.published_at || post.created_at).toLocaleDateString('zh-CN')}}</td>
                   </tr>
                   <tr v-if="editingId===post.id">
                     <td colspan="6" style="padding:20px 16px;background:#faf8f2;border-top:2px solid #e8e0cc">
@@ -371,23 +373,25 @@ export function getAdminHTML() {
         </div>
         <div v-if="currentPage==='settings'">
           <div class="page-header"><h2>网站设置</h2></div>
-          <div class="editor-layout">
-            <div class="editor-main">
+          <div style="display:flex;gap:20px;align-items:flex-start">
+            <div style="width:33%">
               <div class="card">
-                <h3 style="color:#794f27;margin-bottom:16px">网站设置</h3>
                 <div class="form-group"><label>网站标题</label><input v-model="settingsForm.site_name"></div>
                 <div class="form-group"><label>网站副标题</label><input v-model="settingsForm.site_description"></div>
                 <div class="form-group">
-                  <label>网站图标（建议ICO格式）</label>
-                  <div style="display:flex;gap:12px">
-                    <div class="cover-upload" @click="$refs.faviconInput.click()" @dragover.prevent @drop.prevent="handleFaviconDrop" style="width:120px;padding:16px;border:2px dashed #c4b89e;border-radius:12px;background:#f0e8d8;min-height:80px;display:flex;align-items:center;justify-content:center">
+                  <label>网站图标</label>
+                  <div style="display:flex;gap:12px;align-items:flex-start">
+                    <div class="cover-upload" @click="$refs.faviconInput.click()" @dragover.prevent @drop.prevent="handleFaviconDrop" style="width:80px;padding:12px;border:2px dashed #c4b89e;border-radius:12px;background:#f0e8d8;min-height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                       <input ref="faviconInput" type="file" @change="handleFavicon" accept=".ico,image/*" style="display:none">
-                      <div v-if="!settingsForm.site_favicon"><p style="color:#9f927d;font-size:13px">点击或拖拽上传</p></div>
-                      <img v-else :src="settingsForm.site_favicon" style="width:40px;height:40px">
+                      <div v-if="!settingsForm.site_favicon"><p style="color:#9f927d;font-size:12px">上传</p></div>
+                      <img v-else :src="settingsForm.site_favicon" style="width:32px;height:32px">
                     </div>
-                    <div v-if="settingsForm.site_favicon" style="display:flex;flex-direction:column;gap:8px;justify-content:center">
-                      <button @click="$refs.faviconInput.click()" style="padding:8px 16px;background:#19c8b9;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:13px;font-weight:600;box-shadow:0 3px 0 0 #11a89b;white-space:nowrap">更换</button>
-                      <button @click="settingsForm.site_favicon=''" style="padding:8px 16px;background:#e05a5a;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:13px;font-weight:600;box-shadow:0 3px 0 0 #c94444;white-space:nowrap">删除</button>
+                    <div style="flex:1">
+                      <input v-model="settingsForm.site_favicon" placeholder="或输入外链地址" style="width:100%;margin-bottom:6px">
+                      <div v-if="settingsForm.site_favicon" style="display:flex;gap:4px">
+                        <button @click="$refs.faviconInput.click()" style="padding:4px 10px;background:#19c8b9;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #11a89b">更换</button>
+                        <button @click="settingsForm.site_favicon=''" style="padding:4px 10px;background:#e05a5a;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #c94444">删除</button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -400,27 +404,28 @@ export function getAdminHTML() {
                       <div class="custom-select-option" :class="{selected: settingsForm.site_theme==='ocean-breeze'}" @click="selectOption('theme', 'ocean-breeze', 'theme');applyTheme()">🌊 海洋微风</div>
                     </div>
                   </div>
-                  <p style="font-size:12px;color:#9f927d;margin-top:4px">选择不同的主题风格，也可自行开发新主题</p>
                 </div>
                 <div class="form-group"><label>网站页脚（HTML）</label><textarea v-model="settingsForm.site_footer" rows="3"></textarea></div>
                 <div class="form-group"><label>自定义JS</label><textarea v-model="settingsForm.custom_js" rows="4"></textarea></div>
               </div>
             </div>
-            <div class="editor-side">
+            <div style="width:33%">
               <div class="card">
-                <h3 style="color:#794f27;margin-bottom:16px">个人设置</h3>
                 <div class="form-group"><label>个人名称</label><input v-model="settingsForm.site_author"></div>
                 <div class="form-group">
                   <label>个人头像</label>
-                  <div style="display:flex;gap:12px">
-                    <div class="cover-upload" @click="$refs.avatarInput.click()" @dragover.prevent @drop.prevent="handleAvatarDrop" style="width:120px;padding:16px;border:2px dashed #c4b89e;border-radius:12px;background:#f0e8d8;min-height:100px;display:flex;align-items:center;justify-content:center">
+                  <div style="display:flex;gap:12px;align-items:flex-start">
+                    <div class="cover-upload" @click="$refs.avatarInput.click()" @dragover.prevent @drop.prevent="handleAvatarDrop" style="width:80px;padding:12px;border:2px dashed #c4b89e;border-radius:12px;background:#f0e8d8;min-height:80px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                       <input ref="avatarInput" type="file" @change="handleAvatar" accept="image/*" style="display:none">
-                      <div v-if="!settingsForm.site_avatar"><p style="color:#9f927d;font-size:13px">点击或拖拽上传</p></div>
-                      <img v-else :src="settingsForm.site_avatar" style="width:64px;height:64px;border-radius:50%">
+                      <div v-if="!settingsForm.site_avatar"><p style="color:#9f927d;font-size:12px">上传</p></div>
+                      <img v-else :src="settingsForm.site_avatar" style="width:48px;height:48px;border-radius:50%">
                     </div>
-                    <div v-if="settingsForm.site_avatar" style="display:flex;flex-direction:column;gap:8px;justify-content:center">
-                      <button @click="$refs.avatarInput.click()" style="padding:8px 16px;background:#19c8b9;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:13px;font-weight:600;box-shadow:0 3px 0 0 #11a89b;white-space:nowrap">更换</button>
-                      <button @click="settingsForm.site_avatar=''" style="padding:8px 16px;background:#e05a5a;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:13px;font-weight:600;box-shadow:0 3px 0 0 #c94444;white-space:nowrap">删除</button>
+                    <div style="flex:1">
+                      <input v-model="settingsForm.site_avatar" placeholder="或输入外链地址" style="width:100%;margin-bottom:6px">
+                      <div v-if="settingsForm.site_avatar" style="display:flex;gap:4px">
+                        <button @click="$refs.avatarInput.click()" style="padding:4px 10px;background:#19c8b9;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #11a89b">更换</button>
+                        <button @click="settingsForm.site_avatar=''" style="padding:4px 10px;background:#e05a5a;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #c94444">删除</button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -429,6 +434,7 @@ export function getAdminHTML() {
                 <button class="btn" @click="saveSettings" style="width:100%;margin-top:16px">保存所有设置</button>
               </div>
             </div>
+            <div style="width:33%"></div>
           </div>
         </div>
       </div>
