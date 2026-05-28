@@ -173,10 +173,10 @@ export function getAdminHTML() {
         <div class="sidebar-header"><h1>管理后台</h1></div>
         <div class="sidebar-menu">
           <a href="#" :class="{active:currentPage==='posts'}" @click.prevent="currentPage='posts'">📝 文章管理</a>
-          <a href="#" :class="{active:currentPage==='new'}" @click.prevent="openAdd()">✏️ 新建文章</a>
           <a href="#" :class="{active:currentPage==='category'}" @click.prevent="currentPage='category'">📂 分类管理</a>
           <a href="#" :class="{active:currentPage==='trash'}" @click.prevent="currentPage='trash'">🗑️ 回收站</a>
           <a href="#" :class="{active:currentPage==='settings'}" @click.prevent="currentPage='settings'">⚙️ 网站设置</a>
+          <a href="#" :class="{active:currentPage==='profile'}" @click.prevent="currentPage='profile'">👤 个人设置</a>
         </div>
         <div class="sidebar-footer"><button @click="logout">退出登录</button></div>
       </nav>
@@ -198,7 +198,14 @@ export function getAdminHTML() {
                 </tr>
               </thead>
               <tbody>
-                <template v-for="post in posts" :key="post.id">
+                <tr v-if="editingId==='new'" style="border-top:1px solid #e8e0cc;background:#faf8f2">
+                  <td style="padding:14px 16px;text-align:center"><button class="delete" @click="cancelNewPost" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s">取消</button></td>
+                  <td style="padding:14px 16px;text-align:center"><button class="edit" @click="savePost" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s">保存</button></td>
+                  <td style="padding:14px 16px;text-align:center;color:#9f927d;font-size:14px">-</td>
+                  <td style="padding:14px 16px;color:#794f27;font-weight:600;font-size:15px" colspan="4">新文章编辑中，请在下方填写</td>
+                </tr>
+                <tr v-if="editingId==='new'"><td colspan="7" style="padding:20px 16px;background:#faf8f2;border-top:2px solid #e8e0cc"><div class="editor-layout"><div class="editor-main" style="display:flex;flex-direction:column"><div class="form-group"><label>标题</label><input v-model="form.title"></div><div class="form-group" style="flex:1;display:flex;flex-direction:column"><label>内容</label><div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px"><button type="button" @click="insertMd('heading')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;color:#725d42">标题</button><button type="button" @click="insertMd('bold')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;color:#725d42">B</button><button type="button" @click="insertMd('italic')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;font-style:italic;color:#725d42">I</button><button type="button" @click="insertMd('link')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;color:#725d42">🔗</button><button type="button" @click="insertMd('image')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;color:#725d42">🖼</button><button type="button" @click="insertMd('code')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;color:#725d42">代码</button><button type="button" @click="insertMd('ul')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;color:#725d42">•列表</button><button type="button" @click="insertMd('ol')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;color:#725d42">1.序号</button><button type="button" @click="insertMd('quote')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;color:#725d42">❝引用</button><button type="button" @click="insertMd('hr')" style="padding:4px 10px;background:#f0e8d8;border:2px solid #c4b89e;border-radius:6px;cursor:pointer;font-size:12px;color:#725d42">—分割线</button></div><textarea v-model="form.content" style="flex:1;min-height:200px"></textarea></div><div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px"><button class="btn" @click="savePost">保存</button><button class="btn btn-cancel" @click="cancelNewPost">取消</button></div></div><div class="editor-side"><div class="form-group"><label>状态</label><div class="custom-select" @click.stop><div class="custom-select-trigger" :class="{active: customSelects['status']}" @click="toggleSelect('status')">{{ form.status === 'draft' ? '草稿' : '已发布' }}</div><div class="custom-select-dropdown" :class="{show: customSelects['status']}"><div class="custom-select-option" :class="{selected: form.status==='draft'}" @click="selectOption('status', 'draft', 'status')">草稿</div><div class="custom-select-option" :class="{selected: form.status==='published'}" @click="selectOption('status', 'published', 'status')">已发布</div></div></div></div><div class="form-group"><label>日期</label><input type="date" v-model="form.published_at"></div><div class="form-group"><label>分类</label><div class="custom-select" @click.stop><div class="custom-select-trigger" :class="{active: customSelects['category']}" @click="toggleSelect('category')">{{ form.category || '请选择' }}</div><div class="custom-select-dropdown" :class="{show: customSelects['category']}"><div class="custom-select-option" @click="selectOption('category', '', 'category')">请选择</div><div v-for="cat in categories" :key="cat.id" class="custom-select-option" :class="{selected: form.category===cat.name}" @click="selectOption('category', cat.name, 'category')">{{ cat.name }}</div></div></div></div><div class="form-group"><label>标签</label><input v-model="form.tags" placeholder="用英文逗号隔开"></div><div class="form-group"><label>密码（可选）</label><input v-model="form.password" type="password" placeholder="留空无需密码"></div></div></div></td></tr>
+                <template v-for="(post, idx) in posts.slice((postPage-1)*postPageSize, postPage*postPageSize)" :key="post.id">
                   <tr style="border-top:1px solid #e8e0cc">
                     <td style="padding:14px 16px;text-align:center;white-space:nowrap"><button class="delete" @click="deletePost(post.id)" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">删除</button></td>
                     <td style="padding:14px 16px;text-align:center;white-space:nowrap"><button class="edit" @click="toggleEdit(post)" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">{{editingId===post.id?'收起':'编辑'}}</button></td>
@@ -209,7 +216,7 @@ export function getAdminHTML() {
                     <td style="padding:14px 16px;text-align:right;color:#9f927d;font-size:15px">{{new Date(post.published_at || post.created_at).toLocaleDateString('zh-CN')}}</td>
                   </tr>
                   <tr v-if="editingId===post.id">
-                    <td colspan="6" style="padding:20px 16px;background:#faf8f2;border-top:2px solid #e8e0cc">
+                    <td colspan="7" style="padding:20px 16px;background:#faf8f2;border-top:2px solid #e8e0cc">
                       <div class="editor-layout">
                         <div class="editor-main" style="display:flex;flex-direction:column">
                           <div class="form-group"><label>标题</label><input v-model="form.title"></div>
@@ -273,8 +280,13 @@ export function getAdminHTML() {
               </tbody>
             </table>
           </div>
+          <div v-if="Math.ceil(posts.length / postPageSize) > 1" style="display:flex;justify-content:center;gap:8px;margin-top:16px">
+            <button class="btn btn-cancel" @click="postPage=Math.max(1,postPage-1)" :style="{opacity:postPage<=1?0.4:1}" :disabled="postPage<=1" style="padding:8px 16px;font-size:14px">上一页</button>
+            <span style="display:flex;align-items:center;color:#725d42;font-weight:600;font-size:14px">{{postPage}} / {{Math.ceil(posts.length / postPageSize)}}</span>
+            <button class="btn btn-cancel" @click="postPage=Math.min(Math.ceil(posts.length/postPageSize),postPage+1)" :style="{opacity:postPage>=Math.ceil(posts.length/postPageSize)?0.4:1}" :disabled="postPage>=Math.ceil(posts.length/postPageSize)" style="padding:8px 16px;font-size:14px">下一页</button>
+          </div>
         </div>
-        <div v-if="currentPage==='new'">
+        <div v-if="currentPage==='new__removed'">
           <div class="page-header"><h2>{{editingId?'编辑文章':'新建文章'}}</h2></div>
           <button class="btn btn-cancel" @click="currentPage='posts';editingId=null" style="margin-bottom:16px">返回列表</button>
           <div class="editor-layout">
@@ -338,14 +350,14 @@ export function getAdminHTML() {
         <div v-if="currentPage==='category'">
           <div class="page-header"><h2>分类管理</h2></div>
           <button class="btn" @click="editingCategory='new';categoryForm={name:'',slug:'',description:''}" style="margin-bottom:16px">添加分类</button>
-          <div v-if="editingCategory==='new'" class="card" style="width:33%">
+          <div v-if="editingCategory==='new'" class="card" style="width:50%">
             <div class="form-row">
               <div class="form-group"><label>英文ID</label><input v-model="categoryForm.slug"></div>
               <div class="form-group"><label>中文名称</label><input v-model="categoryForm.name"></div>
             </div>
             <div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn" @click="saveCategory">保存</button><button class="btn btn-cancel" @click="editingCategory=null">取消</button></div>
           </div>
-          <div style="width:33%">
+          <div style="width:50%">
             <div class="card" style="padding:0;overflow:hidden">
               <table style="width:100%;border-collapse:collapse">
                 <thead>
@@ -359,10 +371,10 @@ export function getAdminHTML() {
                 <tbody>
                   <template v-for="cat in categories" :key="cat.id">
                     <tr style="border-top:1px solid #e8e0cc">
-                      <td style="padding:12px 16px;text-align:center;white-space:nowrap"><button class="delete" @click="deleteCategory(cat.id)" style="padding:4px 12px;border:none;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">删除</button></td>
-                      <td style="padding:12px 16px;text-align:center;white-space:nowrap"><button class="edit" @click="editingCategory===cat.id?editingCategory=null:editCategory(cat)" style="padding:4px 12px;border:none;border-radius:50px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">{{editingCategory===cat.id?'收起':'编辑'}}</button></td>
-                      <td style="padding:12px 16px;color:#9f927d;font-size:14px">/{{cat.slug}}</td>
-                      <td style="padding:12px 16px;color:#794f27;font-weight:600;font-size:15px">{{cat.name}}</td>
+                      <td style="padding:14px 16px;text-align:center;white-space:nowrap"><button class="delete" @click="deleteCategory(cat.id)" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">删除</button></td>
+                      <td style="padding:14px 16px;text-align:center;white-space:nowrap"><button class="edit" @click="editingCategory===cat.id?editingCategory=null:editCategory(cat)" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">{{editingCategory===cat.id?'收起':'编辑'}}</button></td>
+                      <td style="padding:14px 16px;color:#9f927d;font-size:15px">/{{cat.slug}}</td>
+                      <td style="padding:14px 16px;color:#794f27;font-weight:600;font-size:16px">{{cat.name}}</td>
                     </tr>
                     <tr v-if="editingCategory===cat.id">
                       <td colspan="4" style="padding:16px;background:#faf8f2;border-top:2px solid #e8e0cc">
@@ -383,77 +395,98 @@ export function getAdminHTML() {
         <div v-if="currentPage==='trash'">
           <div class="page-header"><h2>回收站</h2></div>
           <div v-if="trashPosts.length===0" class="card" style="text-align:center;color:#9f927d">回收站是空的</div>
-          <div v-for="post in trashPosts" :key="post.id" class="card">
-            <div style="display:flex;align-items:center;gap:12px">
-              <div class="actions"><button class="btn" @click="restorePost(post.id)" style="padding:6px 14px;font-size:13px">恢复</button><button class="btn btn-danger" @click="permanentDelete(post.id)" style="padding:6px 14px;font-size:13px">彻底删除</button></div>
-              <h3 style="flex:1;color:#794f27">{{post.title}}</h3>
-            </div>
+          <div v-if="trashPosts.length > 0" class="card" style="padding:0;overflow:hidden">
+            <table style="width:100%;border-collapse:collapse">
+              <thead>
+                <tr style="background:#f0e8d8">
+                  <th style="padding:16px 16px;text-align:center;color:#794f27;font-weight:700;font-size:15px;width:80px;white-space:nowrap">删除</th>
+                  <th style="padding:16px 16px;text-align:center;color:#794f27;font-weight:700;font-size:15px;width:80px;white-space:nowrap">恢复</th>
+                  <th style="padding:16px 16px;text-align:center;color:#794f27;font-weight:700;font-size:15px;width:60px">ID</th>
+                  <th style="padding:16px 16px;text-align:left;color:#794f27;font-weight:700;font-size:15px">文章标题</th>
+                  <th style="padding:16px 16px;text-align:left;color:#794f27;font-weight:700;font-size:15px;width:150px;white-space:nowrap">分类</th>
+                  <th style="padding:16px 16px;text-align:center;color:#794f27;font-weight:700;font-size:15px;width:100px">状态</th>
+                  <th style="padding:16px 16px;text-align:right;color:#794f27;font-weight:700;font-size:15px;width:120px">发布日期</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="post in trashPosts" :key="post.id" style="border-top:1px solid #e8e0cc">
+                  <td style="padding:14px 16px;text-align:center;white-space:nowrap"><button class="delete" @click="permanentDelete(post.id)" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">删除</button></td>
+                  <td style="padding:14px 16px;text-align:center;white-space:nowrap"><button class="edit" @click="restorePost(post.id)" style="padding:5px 14px;border:none;border-radius:50px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap">恢复</button></td>
+                  <td style="padding:14px 16px;text-align:center;color:#9f927d;font-size:14px">#{{post.id}}</td>
+                  <td style="padding:14px 16px;color:#794f27;font-weight:600;font-size:16px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{post.title}}</td>
+                  <td style="padding:14px 16px;color:#9f927d;font-size:15px;white-space:nowrap">{{post.category}}</td>
+                  <td style="padding:14px 16px;text-align:center;white-space:nowrap"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#e05a5a;margin-right:6px;vertical-align:middle"></span><span style="font-size:15px;color:#725d42;vertical-align:middle">已删除</span></td>
+                  <td style="padding:14px 16px;text-align:right;color:#9f927d;font-size:15px">{{new Date(post.published_at || post.created_at).toLocaleDateString('zh-CN')}}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
         <div v-if="currentPage==='settings'">
           <div class="page-header"><h2>网站设置</h2></div>
-          <div style="display:flex;gap:20px;align-items:flex-start">
-            <div style="width:33%">
-              <div class="card">
-                <div class="form-group"><label>网站标题</label><input v-model="settingsForm.site_name"></div>
-                <div class="form-group"><label>网站副标题</label><input v-model="settingsForm.site_description"></div>
-                <div class="form-group">
-                  <label>网站图标</label>
-                  <div style="display:flex;gap:12px;align-items:flex-start">
-                    <div class="cover-upload" @click="$refs.faviconInput.click()" @dragover.prevent @drop.prevent="handleFaviconDrop" style="width:80px;padding:12px;border:2px dashed #c4b89e;border-radius:12px;background:#f0e8d8;min-height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                      <input ref="faviconInput" type="file" @change="handleFavicon" accept=".ico,image/*" style="display:none">
-                      <div v-if="!settingsForm.site_favicon"><p style="color:#9f927d;font-size:12px">上传</p></div>
-                      <img v-else :src="settingsForm.site_favicon" style="width:32px;height:32px">
-                    </div>
-                    <div style="flex:1">
-                      <input v-model="settingsForm.site_favicon" placeholder="或输入外链地址" style="width:100%;margin-bottom:6px">
-                      <div v-if="settingsForm.site_favicon" style="display:flex;gap:4px">
-                        <button @click="$refs.faviconInput.click()" style="padding:4px 10px;background:#19c8b9;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #11a89b">更换</button>
-                        <button @click="settingsForm.site_favicon=''" style="padding:4px 10px;background:#e05a5a;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #c94444">删除</button>
-                      </div>
+          <div style="width:50%">
+            <div class="card">
+              <div class="form-group"><label>网站标题</label><input v-model="settingsForm.site_name"></div>
+              <div class="form-group"><label>网站副标题</label><input v-model="settingsForm.site_description"></div>
+              <div class="form-group">
+                <label>网站图标</label>
+                <div style="display:flex;gap:12px;align-items:flex-start">
+                  <div class="cover-upload" @click="$refs.faviconInput.click()" @dragover.prevent @drop.prevent="handleFaviconDrop" style="width:80px;padding:12px;border:2px dashed #c4b89e;border-radius:12px;background:#f0e8d8;min-height:60px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <input ref="faviconInput" type="file" @change="handleFavicon" accept=".ico,image/*" style="display:none">
+                    <div v-if="!settingsForm.site_favicon"><p style="color:#9f927d;font-size:12px">上传</p></div>
+                    <img v-else :src="settingsForm.site_favicon" style="width:32px;height:32px">
+                  </div>
+                  <div style="flex:1">
+                    <input v-model="settingsForm.site_favicon" placeholder="或输入外链地址" style="width:100%;margin-bottom:6px">
+                    <div v-if="settingsForm.site_favicon" style="display:flex;gap:4px">
+                      <button @click="$refs.faviconInput.click()" style="padding:4px 10px;background:#19c8b9;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #11a89b">更换</button>
+                      <button @click="settingsForm.site_favicon=''" style="padding:4px 10px;background:#e05a5a;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #c94444">删除</button>
                     </div>
                   </div>
                 </div>
-                <div class="form-group">
-                  <label>主题风格</label>
-                  <div class="custom-select" @click.stop>
-                    <div class="custom-select-trigger" :class="{active: customSelects['theme']}" @click="toggleSelect('theme')">{{ settingsForm.site_theme === 'animal-forest' ? '🌲 动物森林' : '🌊 海洋微风' }}</div>
-                    <div class="custom-select-dropdown" :class="{show: customSelects['theme']}">
-                      <div class="custom-select-option" :class="{selected: settingsForm.site_theme==='animal-forest'}" @click="selectOption('theme', 'animal-forest', 'theme');applyTheme()">🌲 动物森林</div>
-                      <div class="custom-select-option" :class="{selected: settingsForm.site_theme==='ocean-breeze'}" @click="selectOption('theme', 'ocean-breeze', 'theme');applyTheme()">🌊 海洋微风</div>
-                    </div>
-                  </div>
-                </div>
-                <div class="form-group"><label>网站页脚（HTML）</label><textarea v-model="settingsForm.site_footer" rows="3"></textarea></div>
-                <div class="form-group"><label>自定义JS</label><textarea v-model="settingsForm.custom_js" rows="4"></textarea></div>
               </div>
+              <div class="form-group">
+                <label>主题风格</label>
+                <div class="custom-select" @click.stop>
+                  <div class="custom-select-trigger" :class="{active: customSelects['theme']}" @click="toggleSelect('theme')">{{ settingsForm.site_theme === 'animal-forest' ? '🌲 动物森林' : '🌊 海洋微风' }}</div>
+                  <div class="custom-select-dropdown" :class="{show: customSelects['theme']}">
+                    <div class="custom-select-option" :class="{selected: settingsForm.site_theme==='animal-forest'}" @click="selectOption('theme', 'animal-forest', 'theme');applyTheme()">🌲 动物森林</div>
+                    <div class="custom-select-option" :class="{selected: settingsForm.site_theme==='ocean-breeze'}" @click="selectOption('theme', 'ocean-breeze', 'theme');applyTheme()">🌊 海洋微风</div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group"><label>网站页脚（HTML）</label><textarea v-model="settingsForm.site_footer" rows="3"></textarea></div>
+              <div class="form-group"><label>自定义JS</label><textarea v-model="settingsForm.custom_js" rows="4"></textarea></div>
+              <button class="btn" @click="saveSettings" style="width:100%;margin-top:16px">保存设置</button>
             </div>
-            <div style="width:33%">
-              <div class="card">
-                <div class="form-group"><label>个人名称</label><input v-model="settingsForm.site_author"></div>
-                <div class="form-group">
-                  <label>个人头像</label>
-                  <div style="display:flex;gap:12px;align-items:flex-start">
-                    <div class="cover-upload" @click="$refs.avatarInput.click()" @dragover.prevent @drop.prevent="handleAvatarDrop" style="width:80px;padding:12px;border:2px dashed #c4b89e;border-radius:12px;background:#f0e8d8;min-height:80px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                      <input ref="avatarInput" type="file" @change="handleAvatar" accept="image/*" style="display:none">
-                      <div v-if="!settingsForm.site_avatar"><p style="color:#9f927d;font-size:12px">上传</p></div>
-                      <img v-else :src="settingsForm.site_avatar" style="width:48px;height:48px;border-radius:50%">
-                    </div>
-                    <div style="flex:1">
-                      <input v-model="settingsForm.site_avatar" placeholder="或输入外链地址" style="width:100%;margin-bottom:6px">
-                      <div v-if="settingsForm.site_avatar" style="display:flex;gap:4px">
-                        <button @click="$refs.avatarInput.click()" style="padding:4px 10px;background:#19c8b9;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #11a89b">更换</button>
-                        <button @click="settingsForm.site_avatar=''" style="padding:4px 10px;background:#e05a5a;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #c94444">删除</button>
-                      </div>
+          </div>
+        </div>
+        <div v-if="currentPage==='profile'">
+          <div class="page-header"><h2>个人设置</h2></div>
+          <div style="width:50%">
+            <div class="card">
+              <div class="form-group"><label>个人名称</label><input v-model="settingsForm.site_author"></div>
+              <div class="form-group">
+                <label>个人头像</label>
+                <div style="display:flex;gap:12px;align-items:flex-start">
+                  <div class="cover-upload" @click="$refs.avatarInput.click()" @dragover.prevent @drop.prevent="handleAvatarDrop" style="width:80px;padding:12px;border:2px dashed #c4b89e;border-radius:12px;background:#f0e8d8;min-height:80px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <input ref="avatarInput" type="file" @change="handleAvatar" accept="image/*" style="display:none">
+                    <div v-if="!settingsForm.site_avatar"><p style="color:#9f927d;font-size:12px">上传</p></div>
+                    <img v-else :src="settingsForm.site_avatar" style="width:48px;height:48px;border-radius:50%">
+                  </div>
+                  <div style="flex:1">
+                    <input v-model="settingsForm.site_avatar" placeholder="或输入外链地址" style="width:100%;margin-bottom:6px">
+                    <div v-if="settingsForm.site_avatar" style="display:flex;gap:4px">
+                      <button @click="$refs.avatarInput.click()" style="padding:4px 10px;background:#19c8b9;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #11a89b">更换</button>
+                      <button @click="settingsForm.site_avatar=''" style="padding:4px 10px;background:#e05a5a;color:#fff;border:none;border-radius:50px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 0 0 #c94444">删除</button>
                     </div>
                   </div>
                 </div>
-                <div class="form-group"><label>个人简介</label><textarea v-model="settingsForm.site_bio" rows="3"></textarea></div>
-                <div class="form-group"><label>友链（名称,地址 每行一个）</label><textarea v-model="settingsForm.site_links" rows="4"></textarea></div>
-                <button class="btn" @click="saveSettings" style="width:100%;margin-top:16px">保存所有设置</button>
               </div>
+              <div class="form-group"><label>个人简介</label><textarea v-model="settingsForm.site_bio" rows="3"></textarea></div>
+              <div class="form-group"><label>友链（名称,地址 每行一个）</label><textarea v-model="settingsForm.site_links" rows="4"></textarea></div>
+              <button class="btn" @click="saveSettings" style="width:100%;margin-top:16px">保存设置</button>
             </div>
-            <div style="width:33%"></div>
           </div>
         </div>
       </div>
@@ -508,9 +541,12 @@ export function getAdminHTML() {
         const loadTrash = async () => { try { const r = await api('/api/admin/trash'); trashPosts.value = r.data; } catch (e) {} };
         const showToast = (m) => { toast.value = m; setTimeout(() => toast.value = '', 2000); };
         const showConfirm = (t, m) => new Promise(r => { confirmModal.value = { show: true, title: t, message: m, onConfirm: () => { confirmModal.value.show = false; r(true); } }; });
-        const openAdd = () => { editingId.value = null; form.value = { title: '', content: '', category: '', tags: '', status: 'draft', cover_image: '', password: '', published_at: new Date().toISOString().split('T')[0] }; coverPreview.value = ''; currentPage.value = 'new'; };
+        const postPage = ref(1);
+        const postPageSize = 10;
+        const openAdd = () => { if (editingId.value) { editingId.value = null; } editingId.value = 'new'; form.value = { title: '', content: '', category: '', tags: '', status: 'draft', cover_image: '', password: '', published_at: new Date().toISOString().split('T')[0] }; coverPreview.value = ''; };
+        const cancelNewPost = async () => { const c = await showConfirm('确认取消', '未保存的内容将丢失'); if (c) { editingId.value = null; } };
         const toggleEdit = (p) => { if (editingId.value === p.id) { editingId.value = null; } else { editingId.value = p.id; form.value = { title: p.title, content: p.content, category: p.category, tags: p.tags, status: p.status, cover_image: p.cover_image || '', password: p.password || '', published_at: p.published_at ? p.published_at.split('T')[0] : new Date().toISOString().split('T')[0] }; coverPreview.value = p.cover_image || ''; } };
-        const savePost = async () => { const c = await showConfirm('确认保存', '确定保存？'); if (!c) return; try { if (editingId.value) { await api('/api/admin/post?id=' + editingId.value, { method: 'PUT', data: form.value }); editingId.value = null; } else { await api('/api/admin/post', { method: 'POST', data: form.value }); currentPage.value = 'posts'; } loadPosts(); showToast('保存成功'); } catch (e) { alert('保存失败'); } };
+        const savePost = async () => { const c = await showConfirm('确认保存', '确定保存？'); if (!c) return; try { if (editingId.value === 'new') { await api('/api/admin/post', { method: 'POST', data: form.value }); } else { await api('/api/admin/post?id=' + editingId.value, { method: 'PUT', data: form.value }); } editingId.value = null; loadPosts(); showToast('保存成功'); } catch (e) { alert('保存失败'); } };
         const deletePost = async (id) => { const c = await showConfirm('确认删除', '移到回收站？'); if (!c) return; try { await api('/api/admin/post?id=' + id, { method: 'DELETE' }); loadPosts(); loadTrash(); showToast('已移到回收站'); } catch (e) {} };
         const editCategory = (c) => { editingCategory.value = c.id; categoryForm.value = { name: c.name, slug: c.slug, description: c.description || '' }; };
         const saveCategory = async () => { if (!categoryForm.value.name || !categoryForm.value.slug) { alert('请填写'); return; } const c = await showConfirm('确认保存', '确定？'); if (!c) return; try { const d = { ...categoryForm.value }; if (editingCategory.value && editingCategory.value !== 'new') d.id = editingCategory.value; await api('/api/category', { method: 'POST', data: d }); loadCategories(); editingCategory.value = null; categoryForm.value = { name: '', slug: '', description: '' }; showToast('保存成功'); } catch (e) { alert('保存失败'); } };
@@ -525,7 +561,7 @@ export function getAdminHTML() {
         const handleFaviconDrop = async (e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) await uploadFavicon(f); };
         const uploadFavicon = async (f) => { const fd = new FormData(); fd.append('file', f); const r = await fetch('/api/upload', { method: 'POST', body: fd }); const d = await r.json(); if (d.url) settingsForm.value.site_favicon = d.url; };
         const handleAvatar = async (e) => { const f = e.target.files[0]; if (!f) return; const fd = new FormData(); fd.append('file', f); const r = await fetch('/api/upload', { method: 'POST', body: fd }); const d = await r.json(); if (d.url) settingsForm.value.site_avatar = d.url; };
-        const restorePost = async (id) => { try { await api('/api/admin/restore', { method: 'POST', data: { id } }); loadPosts(); loadTrash(); showToast('已恢复'); } catch (e) {} };
+        const restorePost = async (id) => { const c = await showConfirm('确认恢复', '将文章恢复为草稿？'); if (!c) return; try { await api('/api/admin/restore', { method: 'POST', data: { id } }); loadPosts(); loadTrash(); showToast('已恢复'); } catch (e) {} };
         const permanentDelete = async (id) => { const c = await showConfirm('确认删除', '彻底删除？不可恢复！'); if (!c) return; try { await api('/api/admin/permanent-delete', { method: 'POST', data: { id } }); loadTrash(); showToast('已删除'); } catch (e) {} };
         const emptyTrash = async () => { const c = await showConfirm('确认清空', '清空回收站？不可恢复！'); if (!c) return; try { await api('/api/admin/empty-trash', { method: 'POST' }); loadTrash(); showToast('已清空'); } catch (e) {} };
         
@@ -639,7 +675,7 @@ export function getAdminHTML() {
         };
 
         onMounted(() => { check(); document.addEventListener('click', closeAllSelects); });
-        return { logged, password, login, logout, posts, editingId, form, coverPreview, toast, openAdd, toggleEdit, handleCoverChange, handleDrop, deleteCover, savePost, deletePost, categories, currentPage, categoryForm, saveCategory, deleteCategory, editCategory, editingCategory, settingsForm, saveSettings, handleFavicon, handleFaviconDrop, handleAvatar, handleAvatarDrop, trashPosts, restorePost, permanentDelete, emptyTrash, confirmModal, showConfirm, insertMd, applyTheme, customSelects, toggleSelect, selectOption, getSelectLabel };
+        return { logged, password, login, logout, posts, editingId, form, coverPreview, toast, openAdd, cancelNewPost, toggleEdit, handleCoverChange, handleDrop, deleteCover, savePost, deletePost, categories, currentPage, postPage, postPageSize, categoryForm, saveCategory, deleteCategory, editCategory, editingCategory, settingsForm, saveSettings, handleFavicon, handleFaviconDrop, handleAvatar, handleAvatarDrop, trashPosts, restorePost, permanentDelete, emptyTrash, confirmModal, showConfirm, insertMd, applyTheme, customSelects, toggleSelect, selectOption, getSelectLabel };
       }
     }).mount('#app');
   <\/script>
