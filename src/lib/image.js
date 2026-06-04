@@ -9,7 +9,7 @@ export async function handleImage(request, env, path) {
   const filename = path.replace('/images/', '');
 
   // 验证文件名（防止路径遍历 + 非法字符）
-  const SAFE_FILENAME = /^[a-zA-Z0-9_-]{1,64}\.(jpg|jpeg|png|gif|webp|svg|ico)$/;
+  const SAFE_FILENAME = /^[a-zA-Z0-9_-]{1,64}\.(jpg|jpeg|png|gif|webp|svg|ico|x-icon|avif|bmp|tiff)$/;
   if (!filename || !SAFE_FILENAME.test(filename)) {
     return new Response('Bad Request', { status: 400 });
   }
@@ -107,7 +107,7 @@ export async function handleUpload(request, env) {
       return { error: '不支持的文件类型', status: 400 };
     }
 
-    const ext = (file.type?.split('/')[1] || 'jpg').replace('+xml', '');
+    const ext = ({ 'image/x-icon': 'ico', 'image/svg+xml': 'svg' })[file.type] || (file.type?.split('/')[1] || 'jpg').replace('+xml', '');
     const filename = `${generateRandomFilename()}.${ext}`;
 
     if (env.R2) {
