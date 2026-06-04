@@ -141,7 +141,6 @@ export function getFrontendHTML(settings) {
   </main>
   <button class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
   <footer>${settings.site_footer ? escapeHtml(settings.site_footer) : '&copy; 2026 ' + escapeHtml(siteName)}</footer>
-  ${settings.custom_js || ''}
   <script>
     // 返回顶部
     window.addEventListener('scroll', function() {
@@ -278,6 +277,7 @@ export function getFrontendHTML(settings) {
       }, 200);
     });
   </script>
+  ${settings.custom_js || ''}
 </body>
 </html>`;
 }
